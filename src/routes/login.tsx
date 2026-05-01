@@ -82,7 +82,13 @@ function LoginPage() {
 
   return (
     <PhoneFrame>
-      <div className="absolute inset-0 flex flex-col px-6 pt-16 pb-10">
+      <motion.div
+        className={`absolute inset-0 flex flex-col px-6 pt-16 pb-10 ${shake ? "shake" : ""}`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div className="h-10" />
 
         <div className="mt-4">
@@ -165,6 +171,7 @@ function LoginPage() {
               style={{ fontFamily: "Geist Mono, monospace" }}
             />
             <button
+              aria-label={showPw ? "Hide password" : "Show password"}
               onClick={() => setShowPw((s) => !s)}
               className="absolute right-3 top-1/2 -translate-y-1/2 size-9 flex items-center justify-center text-text-muted"
             >
@@ -176,16 +183,51 @@ function LoginPage() {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={submit}
-          disabled={loading}
-          className="w-full py-4 rounded-2xl bg-text-primary text-bg-base font-medium text-[15px] disabled:opacity-30"
+          disabled={loading || success}
+          animate={success ? { backgroundColor: "#6EE7B7" } : { backgroundColor: "#FAFAFA" }}
+          transition={{ duration: 0.25 }}
+          className="w-full py-4 rounded-2xl text-bg-base font-medium text-[15px] disabled:opacity-90 flex items-center justify-center gap-2"
         >
-          {loading ? "…" : "Sign in"}
+          <AnimatePresence mode="wait" initial={false}>
+            {success ? (
+              <motion.span
+                key="ok"
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2"
+              >
+                <Check size={18} strokeWidth={2.5} />
+                Signed in
+              </motion.span>
+            ) : loading ? (
+              <motion.span
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2"
+              >
+                <Loader2 size={18} className="animate-spin" />
+                Signing in
+              </motion.span>
+            ) : (
+              <motion.span
+                key="idle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                Sign in
+              </motion.span>
+            )}
+          </AnimatePresence>
         </motion.button>
 
         <p className="text-[11px] text-text-muted text-center mt-4 leading-relaxed">
           Personal use only.
         </p>
-      </div>
+      </motion.div>
     </PhoneFrame>
   );
 }
