@@ -7,6 +7,7 @@ import { TrackerTile } from "@/components/TrackerTile";
 import { CountUp } from "@/components/CountUp";
 import { WaterSheet } from "@/components/WaterSheet";
 import { MoodSheet } from "@/components/MoodSheet";
+import { MedicineSheet } from "@/components/MedicineSheet";
 import {
   useTodayWater,
   useTodayMood,
@@ -16,6 +17,7 @@ import {
   DEFAULT_WATER_TARGET_ML,
   DEFAULT_WALK_TARGET_MIN,
 } from "@/lib/trackers";
+import { useMedicines } from "@/lib/medicines";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "Today — Daily" }] }),
@@ -42,12 +44,14 @@ function TodayPage() {
   const greeting = useGreeting();
   const [waterOpen, setWaterOpen] = useState(false);
   const [moodOpen, setMoodOpen] = useState(false);
+  const [medOpen, setMedOpen] = useState(false);
 
   const { totalMl } = useTodayWater();
   const { mood } = useTodayMood();
   const { latest: latestWeight, delta: weightDelta } = useWeightLogs(7);
   const { todayMinutes, todayKm } = useWalkLogs(7);
   const { profile } = useProfile();
+  const { takenCount, totalCount, doses } = useMedicines();
 
   const walkTarget = profile?.walking_target_min ?? DEFAULT_WALK_TARGET_MIN;
   const waterTarget = profile?.daily_water_target_ml ?? DEFAULT_WATER_TARGET_ML;
@@ -55,8 +59,12 @@ function TodayPage() {
   const waterPct = Math.min(100, (totalMl / waterTarget) * 100);
   const walkPct = Math.min(100, (todayMinutes / walkTarget) * 100);
   const moodPct = mood ? 100 : 0;
-  // Combined adherence over the trackers that have a meaningful daily target today
-  const adherence = Math.round((waterPct + walkPct + moodPct) / 3);
+  const medPct = totalCount > 0 ? (takenCount / totalCount) * 100 : 0;
+  const buckets = [waterPct, walkPct, moodPct];
+  if (totalCount > 0) buckets.push(medPct);
+  const adherence = Math.round(buckets.reduce((a, b) => a + b, 0) / buckets.length);
+
+  const nextDose = doses.find((d) => !d.log);
 
   return (
     <>
@@ -91,9 +99,26 @@ function TodayPage() {
           <TrackerTile
             icon={Pill}
             label="Medicine"
-            primary="No doses scheduled"
-            secondary="Add medicines in Plan"
             accent="med"
+            ringValue={medPct}
+            onClick={() => setMedOpen(true)}
+            primary={
+              totalCount > 0 ? (
+                <span>
+                  <CountUp value={takenCount} />
+                  <span className="text-text-muted text-[14px] ml-1">/ {totalCount} doses</span>
+                </span>
+              ) : (
+                "No medicines"
+              )
+            }
+            secondary={
+              totalCount === 0
+                ? "Tap to add a medicine"
+                : nextDose
+                ? `Next: ${nextDose.medicine.name} at ${nextDose.scheduled_time}`
+                : "All doses taken today"
+            }
           />
           <TrackerTile
             icon={Droplet}
@@ -185,6 +210,7 @@ function TodayPage() {
 
       <WaterSheet open={waterOpen} onClose={() => setWaterOpen(false)} />
       <MoodSheet open={moodOpen} onClose={() => setMoodOpen(false)} />
+      <MedicineSheet open={medOpen} onClose={() => setMedOpen(false)} />
     </>
   );
 }

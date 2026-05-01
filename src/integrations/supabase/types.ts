@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      medicine_logs: {
+        Row: {
+          date: string
+          id: string
+          medicine_id: string
+          notes: string | null
+          scheduled_time: string
+          status: string
+          taken_at: string
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          id?: string
+          medicine_id: string
+          notes?: string | null
+          scheduled_time: string
+          status?: string
+          taken_at?: string
+          user_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          medicine_id?: string
+          notes?: string | null
+          scheduled_time?: string
+          status?: string
+          taken_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_logs_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicines: {
+        Row: {
+          active: boolean
+          color: string | null
+          created_at: string
+          dosage: string | null
+          end_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          schedule_days: number[]
+          schedule_times: string[]
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          dosage?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          schedule_days?: number[]
+          schedule_times?: string[]
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          dosage?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          schedule_days?: number[]
+          schedule_times?: string[]
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mood_logs: {
         Row: {
           date: string
