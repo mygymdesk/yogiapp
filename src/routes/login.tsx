@@ -79,14 +79,13 @@ function LoginPage() {
       showToast(error.message || "Invalid credentials");
       return;
     }
-    // Show success state briefly so the transition isn't abrupt.
-    setLoading(false);
+    // Flip to success state and navigate immediately. The success check stays
+    // visible until the route transition completes, so the user still sees
+    // confirmation without an artificial delay.
     setSuccess(true);
+    setLoading(false);
     haptic();
-    // Wait one paint + a beat before navigating, so the user sees the check.
-    requestAnimationFrame(() => {
-      setTimeout(() => navigate({ to: "/" }), 280);
-    });
+    navigate({ to: "/" });
   };
 
   return (
