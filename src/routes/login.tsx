@@ -131,7 +131,7 @@ function LoginPage() {
               autoFocus
               type="tel"
               inputMode="numeric"
-              value={phone}
+              value={formatPhone(phone)}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 12))}
               placeholder="98765 43210"
               className="flex-1 bg-bg-elevated border border-border rounded-2xl px-4 py-3.5 text-[18px] text-text-primary placeholder:text-text-muted outline-none focus:border-border-hover/40"
