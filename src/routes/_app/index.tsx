@@ -80,10 +80,10 @@ function TodayPage() {
             {format(today, "EEEE")}
           </div>
           <h1
-            className="text-text-primary mt-1 leading-tight"
+            className="text-text-primary mt-1 leading-tight min-h-[34px]"
             style={{ fontFamily: "Fraunces, serif", fontSize: 28, fontWeight: 500 }}
           >
-            {greeting ?? "Hello"}.
+            {greeting ? `${greeting}.` : "\u00A0"}
           </h1>
           <div className="text-[13px] text-text-secondary mt-0.5">
             {format(today, "MMMM d, yyyy")}
