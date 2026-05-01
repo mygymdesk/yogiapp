@@ -118,16 +118,47 @@ function TodayPage() {
           <TrackerTile
             icon={Footprints}
             label="Walk"
-            primary="0 min"
-            secondary="Goal 30 min"
             accent="walk"
+            ringValue={walkPct}
+            to="/walk"
+            primary={
+              <span>
+                <CountUp value={todayMinutes} />
+                <span className="text-text-muted text-[14px] ml-1">/ {walkTarget} min</span>
+              </span>
+            }
+            secondary={
+              todayMinutes === 0
+                ? "Tap to log a walk"
+                : todayKm > 0
+                ? `${todayKm.toFixed(1)} km · ${Math.round(walkPct)}% of goal`
+                : `${Math.round(walkPct)}% of today's goal`
+            }
           />
           <TrackerTile
             icon={Scale}
             label="Weight"
-            primary="— kg"
-            secondary="Log to start tracking"
             accent="weight"
+            to="/weight"
+            primary={
+              latestWeight ? (
+                <span className="tabular-nums">
+                  {latestWeight.weight_kg.toFixed(1)}
+                  <span className="text-text-muted text-[14px] ml-1">kg</span>
+                </span>
+              ) : (
+                "— kg"
+              )
+            }
+            secondary={
+              latestWeight === null
+                ? "Tap to log your weight"
+                : weightDelta === null
+                ? "First entry — keep going"
+                : weightDelta === 0
+                ? "No change since last"
+                : `${weightDelta > 0 ? "▲" : "▼"} ${Math.abs(weightDelta).toFixed(1)} kg since last`
+            }
           />
           <TrackerTile
             icon={Smile}
