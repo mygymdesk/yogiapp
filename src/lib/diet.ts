@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
 import { format } from "date-fns";
@@ -48,80 +49,72 @@ export const SLOT_LABELS: Record<string, string> = {
   dinner: "Dinner",
 };
 
-// Search foods by name (system + user)
+// Search foods by name (system + user) — debounced via React Query keyed cache
 export function useFoodSearch(query: string) {
-  const [results, setResults] = useState<Food[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      setLoading(true);
-      let q = supabase
+  const trimmed = query.trim();
+  const q = useQuery({
+    queryKey: ["foods", "search", trimmed],
+    queryFn: async () => {
+      let req = supabase
         .from("foods")
         .select("*")
         .order("is_system", { ascending: true })
         .order("name", { ascending: true })
         .limit(40);
-      if (query.trim().length > 0) {
-        q = q.ilike("name", `%${query.trim()}%`);
-      }
-      const { data } = await q;
-      if (!cancelled && data) setResults(data as Food[]);
-      if (!cancelled) setLoading(false);
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [query]);
+      if (trimmed.length > 0) req = req.ilike("name", `%${trimmed}%`);
+      const { data, error } = await req;
+      if (error) throw error;
+      return (data ?? []) as Food[];
+    },
+    staleTime: 60_000,
+  });
 
-  return { results, loading };
+  return { results: q.data ?? [], loading: q.isLoading };
 }
 
 // Today's meals + macros
 export function useTodayMeals() {
   const { user } = useAuth();
-  const [meals, setMeals] = useState<MealLog[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  const qc = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
+  const key = ["meals", "today", user?.id, today] as const;
 
-  const fetchAll = useCallback(async () => {
-    if (!user) return;
-    const { data: ml } = await supabase
-      .from("meal_logs")
-      .select("*")
-      .eq("date", today)
-      .order("logged_at", { ascending: true });
-    if (!ml) {
-      setMeals([]);
-      setLoading(false);
-      return;
-    }
-    const ids = ml.map((m) => m.id);
-    const { data: items } = await supabase
-      .from("food_log_items")
-      .select("*")
-      .in("meal_log_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
-    const grouped = new Map<string, FoodLogItem[]>();
-    for (const it of (items ?? []) as FoodLogItem[]) {
-      const arr = grouped.get(it.meal_log_id) ?? [];
-      arr.push(it);
-      grouped.set(it.meal_log_id, arr);
-    }
-    setMeals(
-      ml.map((m) => ({ ...(m as MealLog), items: grouped.get(m.id) ?? [] }))
-    );
-    setLoading(false);
-  }, [user, today]);
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async () => {
+      const { data: ml } = await supabase
+        .from("meal_logs")
+        .select("*")
+        .eq("date", today)
+        .order("logged_at", { ascending: true });
+      if (!ml || ml.length === 0) return [] as MealLog[];
+      const ids = ml.map((m) => m.id);
+      const { data: items } = await supabase
+        .from("food_log_items")
+        .select("*")
+        .in("meal_log_id", ids);
+      const grouped = new Map<string, FoodLogItem[]>();
+      for (const it of (items ?? []) as FoodLogItem[]) {
+        const arr = grouped.get(it.meal_log_id) ?? [];
+        arr.push(it);
+        grouped.set(it.meal_log_id, arr);
+      }
+      return ml.map((m) => ({
+        ...(m as MealLog),
+        items: grouped.get(m.id) ?? [],
+      }));
+    },
+  });
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  const meals = query.data ?? [];
 
   const totals = useMemo(() => {
-    let kcal = 0, protein = 0, carbs = 0, fat = 0, fiber = 0;
+    let kcal = 0,
+      protein = 0,
+      carbs = 0,
+      fat = 0,
+      fiber = 0;
     for (const m of meals)
       for (const it of m.items ?? []) {
         kcal += Number(it.kcal);
@@ -136,11 +129,17 @@ export function useTodayMeals() {
   const totalsBySlot = useMemo(() => {
     const m: Record<string, number> = {};
     for (const meal of meals) {
-      const sum = (meal.items ?? []).reduce((s, it) => s + Number(it.kcal), 0);
+      const sum = (meal.items ?? []).reduce(
+        (s, it) => s + Number(it.kcal),
+        0
+      );
       m[meal.slot] = (m[meal.slot] ?? 0) + sum;
     }
     return m;
   }, [meals]);
+
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: ["meals", "today", user?.id] });
 
   const logMeal = useCallback(
     async (
@@ -148,7 +147,8 @@ export function useTodayMeals() {
       items: { food: Food; serving_g: number }[],
       note?: string
     ) => {
-      if (!user || items.length === 0) return { error: new Error("nothing to log") };
+      if (!user || items.length === 0)
+        return { error: new Error("nothing to log") };
       const { data: meal, error: mErr } = await supabase
         .from("meal_logs")
         .insert({ user_id: user.id, slot, date: today, note: note || null })
@@ -172,22 +172,27 @@ export function useTodayMeals() {
         };
       });
       const { error } = await supabase.from("food_log_items").insert(rows);
-      if (!error) await fetchAll();
+      if (!error) await invalidate();
       return { error };
     },
-    [user, today, fetchAll]
+    [user, today]
   );
 
-  const removeMeal = useCallback(
-    async (id: string) => {
-      const { error } = await supabase.from("meal_logs").delete().eq("id", id);
-      if (!error) await fetchAll();
-      return { error };
-    },
-    [fetchAll]
-  );
+  const removeMeal = useCallback(async (id: string) => {
+    const { error } = await supabase.from("meal_logs").delete().eq("id", id);
+    if (!error) await invalidate();
+    return { error };
+  }, []);
 
-  return { meals, totals, totalsBySlot, loading, logMeal, removeMeal, refresh: fetchAll };
+  return {
+    meals,
+    totals,
+    totalsBySlot,
+    loading: query.isLoading,
+    logMeal,
+    removeMeal,
+    refresh: invalidate,
+  };
 }
 
 // Add custom food
