@@ -17,7 +17,7 @@ import { useProfile, DEFAULT_WATER_TARGET_ML, DEFAULT_WALK_TARGET_MIN } from "@/
 import { RouteError } from "@/components/RouteError";
 
 export const Route = createFileRoute("/_app/insights")({
-  head: () => ({ meta: [{ title: "Insights — Daily" }] }),
+  head: () => ({ meta: [{ title: "Insights — Yogi" }] }),
   errorComponent: ({ error, reset }) => (
     <RouteError error={error} reset={reset} label="insights" />
   ),

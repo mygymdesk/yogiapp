@@ -24,7 +24,7 @@ import { useTodayMeals } from "@/lib/diet";
 import { RouteError } from "@/components/RouteError";
 
 export const Route = createFileRoute("/_app/")({
-  head: () => ({ meta: [{ title: "Today — Daily" }] }),
+  head: () => ({ meta: [{ title: "Today — Yogi" }] }),
   errorComponent: ({ error, reset }) => (
     <RouteError error={error} reset={reset} label="today" />
   ),

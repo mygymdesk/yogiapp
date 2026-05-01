@@ -26,7 +26,7 @@ export const sendTestPush = createServerFn({ method: "POST" })
     const results = [] as Array<{ endpoint: string; ok: boolean; status: number }>;
     for (const s of (subs ?? []) as PushSubscriptionRow[]) {
       const r = await sendWebPush(s, {
-        title: "Daily — Test",
+        title: "Yogi — Test",
         body: "Push notifications are working ✓",
         url: "/",
         tag: "test",

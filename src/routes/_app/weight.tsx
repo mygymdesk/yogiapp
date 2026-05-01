@@ -16,7 +16,7 @@ import { useWeightLogs, useProfile } from "@/lib/trackers";
 import { WeightSheet } from "@/components/WeightSheet";
 
 export const Route = createFileRoute("/_app/weight")({
-  head: () => ({ meta: [{ title: "Weight — Daily" }] }),
+  head: () => ({ meta: [{ title: "Weight — Yogi" }] }),
   component: WeightDetail,
 });
 
