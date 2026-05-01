@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendPushToUser } from "@/server/push.functions";
+import { sendPushToUser } from "@/server/push.server";
 
 /**
  * Cron endpoint — invoked every 15 minutes by pg_cron.
