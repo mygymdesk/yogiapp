@@ -28,10 +28,9 @@ function SettingsPage() {
     if (next !== confirm) return showToast("Passwords don't match");
     setLoading(true);
     haptic();
-    // Re-verify current password
-    if (user?.phone) {
+    if (user?.email) {
       const { error: signErr } = await supabase.auth.signInWithPassword({
-        phone: user.phone,
+        email: user.email,
         password: current,
       });
       if (signErr) {

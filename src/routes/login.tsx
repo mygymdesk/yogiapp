@@ -36,10 +36,11 @@ function LoginPage() {
   const showToast = useToastStore((s) => s.show);
   const navigate = useNavigate();
 
-  const fullPhone = `${country.replace("+", "")}${phone.replace(/\D/g, "")}`;
+  const localDigits = phone.replace(/\D/g, "");
+  const syntheticEmail = `${localDigits}@daily.local`;
 
   const submit = async () => {
-    if (phone.replace(/\D/g, "").length < 6) {
+    if (localDigits.length < 6) {
       showToast("Enter a valid phone number");
       return;
     }
@@ -50,7 +51,7 @@ function LoginPage() {
     setLoading(true);
     haptic();
     const { error } = await supabase.auth.signInWithPassword({
-      phone: fullPhone,
+      email: syntheticEmail,
       password,
     });
     setLoading(false);
