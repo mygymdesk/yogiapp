@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, LogOut, KeyRound, Save, Bell, BellOff, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useToastStore, haptic } from "@/lib/feedback";
 import { useProfile } from "@/lib/trackers";
+import { RouteError } from "@/components/RouteError";
 import {
   isPushSupported,
   getPushPermission,
@@ -18,6 +19,9 @@ import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({ meta: [{ title: "Settings — Daily" }] }),
+  errorComponent: ({ error, reset }) => (
+    <RouteError error={error} reset={reset} label="settings" />
+  ),
   component: SettingsPage,
 });
 
