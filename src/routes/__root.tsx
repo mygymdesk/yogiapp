@@ -1,8 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
 import { AuthProvider } from "@/lib/auth";
-import { OfflineBanner } from "@/components/OfflineBanner";
 
 import appCss from "../styles.css?url";
 
@@ -28,60 +25,35 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" },
       { name: "theme-color", content: "#0A0A0B" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Yogi" },
-      { title: "Yogi" },
-      { name: "description", content: "Your day, tracked quietly." },
+      { title: "Yogi - Daily — Health Tracker" },
+      { name: "description", content: "A personal daily health tracker." },
+      { property: "og:title", content: "Yogi - Daily — Health Tracker" },
+      { name: "twitter:title", content: "Yogi - Daily — Health Tracker" },
+      { property: "og:description", content: "A personal daily health tracker." },
+      { name: "twitter:description", content: "A personal daily health tracker." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/318936ec-2746-4c63-a046-4a3704ee8b7d" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/318936ec-2746-4c63-a046-4a3704ee8b7d" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/icons/favicon-32.png" },
-      { rel: "icon", type: "image/png", sizes: "16x16", href: "/icons/favicon-16.png" },
-      { rel: "shortcut icon", href: "/icons/favicon.ico" },
-      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
-      { rel: "apple-touch-icon", sizes: "152x152", href: "/icons/icon-152.png" },
-      { rel: "apple-touch-icon", sizes: "167x167", href: "/icons/icon-167.png" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/icon-180.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap",
       },
     ],
   }),
   shellComponent: RootShell,
-  component: RootComponent,
+  component: () => (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  ),
   notFoundComponent: NotFoundComponent,
 });
-
-function RootComponent() {
-  // One QueryClient per render tree (per request on SSR — fresh instance each time).
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 30_000,
-            gcTime: 5 * 60_000,
-            refetchOnWindowFocus: false,
-            retry: 1,
-          },
-        },
-      })
-  );
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-        <OfflineBanner />
-      </AuthProvider>
-    </QueryClientProvider>
-  );
-}
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
