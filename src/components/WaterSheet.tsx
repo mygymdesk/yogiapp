@@ -103,8 +103,9 @@ export function WaterSheet({
           <div className="flex items-center justify-between">
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={() => setCustom((c) => Math.max(50, c - 50))}
-              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary"
+              {...decPress}
+              aria-label="Decrease amount"
+              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary touch-none select-none"
             >
               <Minus size={16} />
             </motion.button>
@@ -119,8 +120,9 @@ export function WaterSheet({
             </div>
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={() => setCustom((c) => Math.min(2000, c + 50))}
-              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary"
+              {...incPress}
+              aria-label="Increase amount"
+              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary touch-none select-none"
             >
               <Plus size={16} />
             </motion.button>
