@@ -80,6 +80,7 @@ export function BottomSheet({
           />
           {/* Sheet */}
           <motion.div
+            ref={sheetRef}
             role="dialog"
             aria-modal="true"
             aria-label={title ?? "Sheet"}
