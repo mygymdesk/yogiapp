@@ -95,6 +95,8 @@ function SettingsPage() {
   const [notifyMed, setNotifyMed] = useState(true);
   const [notifyWater, setNotifyWater] = useState(false);
   const [notifyWaterInterval, setNotifyWaterInterval] = useState("120");
+  const [notifyDaily, setNotifyDaily] = useState(false);
+  const [notifyDailyTime, setNotifyDailyTime] = useState("21:00");
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [pushPerm, setPushPerm] = useState<NotificationPermission>("default");
   const [pushBusy, setPushBusy] = useState(false);
@@ -120,6 +122,8 @@ function SettingsPage() {
     setNotifyMed((profile as any).notify_medicine ?? true);
     setNotifyWater((profile as any).notify_water ?? false);
     setNotifyWaterInterval(((profile as any).notify_water_interval_min ?? 120).toString());
+    setNotifyDaily((profile as any).notify_daily_summary ?? false);
+    setNotifyDailyTime(((profile as any).notify_daily_summary_time ?? "21:00:00").slice(0, 5));
   }, [profile]);
 
   const phone = user?.phone ? `+${user.phone}` : "—";
@@ -145,6 +149,8 @@ function SettingsPage() {
       notify_medicine: notifyMed,
       notify_water: notifyWater,
       notify_water_interval_min: Math.max(30, Number(notifyWaterInterval) || 120),
+      notify_daily_summary: notifyDaily,
+      notify_daily_summary_time: `${notifyDailyTime}:00`,
     } as any);
     setSavingProfile(false);
     if (error) return showToast(error.message);
@@ -477,6 +483,33 @@ function SettingsPage() {
               value={notifyWaterInterval}
               onChange={(e) => setNotifyWaterInterval(e.target.value)}
               className={inputCls}
+            />
+          </Field>
+        )}
+        <Field label="Daily summary" hint="A nudge with today's progress">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setNotifyDaily((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                notifyDaily ? "bg-text-primary" : "bg-border"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-bg-base transition-transform ${
+                  notifyDaily ? "translate-x-5" : ""
+                }`}
+              />
+            </button>
+          </div>
+        </Field>
+        {notifyDaily && (
+          <Field label="Summary time">
+            <input
+              type="time"
+              value={notifyDailyTime}
+              onChange={(e) => setNotifyDailyTime(e.target.value)}
+              className={inputCls}
+              style={{ fontFamily: "Geist Mono, monospace" }}
             />
           </Field>
         )}

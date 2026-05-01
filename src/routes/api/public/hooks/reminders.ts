@@ -21,6 +21,7 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
         const result = {
           medicineSent: 0,
           waterSent: 0,
+          summarySent: 0,
           errors: [] as string[],
         };
 
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
           const { data: profiles } = await supabaseAdmin
             .from("profiles")
             .select(
-              "user_id,timezone,quiet_hours_start,quiet_hours_end,notify_water,notify_water_interval_min,notify_medicine"
+              "user_id,timezone,quiet_hours_start,quiet_hours_end,notify_water,notify_water_interval_min,notify_medicine,notify_daily_summary,notify_daily_summary_time"
             )
             .in("user_id", userIds);
 
@@ -128,6 +129,24 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
                   });
                   result.waterSent++;
                 }
+              }
+            }
+
+            // Daily summary — fire once per day within 15 min of configured time
+            if (p.notify_daily_summary) {
+              const summary = (p.notify_daily_summary_time || "21:00:00").slice(0, 5);
+              const [sh, sm] = summary.split(":").map(Number);
+              const sMin = sh * 60 + sm;
+              const nowMin2 = local.getHours() * 60 + local.getMinutes();
+              if (sMin <= nowMin2 && nowMin2 - sMin < 15) {
+                await sendPushToUser({
+                  userId: p.user_id,
+                  title: "🌙 Daily wrap-up",
+                  body: "Open Daily to see today's progress.",
+                  url: "/insights",
+                  tag: `summary-${p.user_id}-${localDate}`,
+                });
+                result.summarySent++;
               }
             }
           }
