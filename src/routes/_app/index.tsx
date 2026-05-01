@@ -8,6 +8,7 @@ import { CountUp } from "@/components/CountUp";
 import { WaterSheet } from "@/components/WaterSheet";
 import { MoodSheet } from "@/components/MoodSheet";
 import { MedicineSheet } from "@/components/MedicineSheet";
+import { TodayTileSkeleton } from "@/components/TodayTileSkeleton";
 import {
   useTodayWater,
   useTodayMood,
