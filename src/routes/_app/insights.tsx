@@ -11,12 +11,16 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { Flame, Droplet, Footprints, Scale, Pill, Apple } from "lucide-react";
+import { Flame, Droplet, Footprints, Scale, Pill, Apple, Sparkles } from "lucide-react";
 import { useInsights } from "@/lib/insights";
 import { useProfile, DEFAULT_WATER_TARGET_ML, DEFAULT_WALK_TARGET_MIN } from "@/lib/trackers";
+import { RouteError } from "@/components/RouteError";
 
 export const Route = createFileRoute("/_app/insights")({
   head: () => ({ meta: [{ title: "Insights — Daily" }] }),
+  errorComponent: ({ error, reset }) => (
+    <RouteError error={error} reset={reset} label="insights" />
+  ),
   component: InsightsPage,
 });
 
@@ -119,6 +123,23 @@ function InsightsPage() {
       </div>
 
       {loading && <div className="mt-6 text-[12px] text-text-muted px-1">Loading…</div>}
+
+      {!loading && sum(water) === 0 && sum(walk) === 0 && sum(kcal) === 0 && weight.length === 0 && (
+        <div className="mt-8 rounded-2xl bg-bg-elevated border border-border p-6 flex flex-col items-center text-center">
+          <div className="size-12 rounded-full bg-primary/10 grid place-items-center mb-3">
+            <Sparkles size={18} className="text-text-secondary" />
+          </div>
+          <div
+            className="text-text-primary"
+            style={{ fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 500 }}
+          >
+            No data yet
+          </div>
+          <p className="text-[12px] text-text-secondary mt-1.5 max-w-[240px] leading-relaxed">
+            Log a few days of water, walks, meals, or weight and trends will appear here.
+          </p>
+        </div>
+      )}
 
       {/* Water */}
       <ChartCard

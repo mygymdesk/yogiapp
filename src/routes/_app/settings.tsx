@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, LogOut, KeyRound, Save, Bell, BellOff, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useToastStore, haptic } from "@/lib/feedback";
 import { useProfile } from "@/lib/trackers";
+import { RouteError } from "@/components/RouteError";
 import {
   isPushSupported,
   getPushPermission,
@@ -18,6 +19,9 @@ import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({ meta: [{ title: "Settings — Daily" }] }),
+  errorComponent: ({ error, reset }) => (
+    <RouteError error={error} reset={reset} label="settings" />
+  ),
   component: SettingsPage,
 });
 
@@ -102,6 +106,8 @@ function SettingsPage() {
   const [pushBusy, setPushBusy] = useState(false);
 
   const [savingProfile, setSavingProfile] = useState(false);
+  const [tab, setTab] = useState<"profile" | "targets" | "notifications" | "security">("profile");
+  const [initialSnapshot, setInitialSnapshot] = useState<string>("");
 
   useEffect(() => {
     if (!profile) return;
@@ -124,7 +130,41 @@ function SettingsPage() {
     setNotifyWaterInterval(((profile as any).notify_water_interval_min ?? 120).toString());
     setNotifyDaily((profile as any).notify_daily_summary ?? false);
     setNotifyDailyTime(((profile as any).notify_daily_summary_time ?? "21:00:00").slice(0, 5));
+    // Snapshot for dirty detection — taken right after seed.
+    setInitialSnapshot(JSON.stringify([
+      profile.display_name ?? "",
+      (profile as any).dob ?? "",
+      profile.height_cm?.toString() ?? "",
+      profile.daily_water_target_ml?.toString() ?? "",
+      profile.walking_target_min?.toString() ?? "",
+      profile.goal_weight_kg?.toString() ?? "",
+      profile.weight_unit ?? "kg",
+      profile.timezone ?? "Asia/Kolkata",
+      (profile.quiet_hours_start ?? "23:00:00").slice(0, 5),
+      (profile.quiet_hours_end ?? "07:00:00").slice(0, 5),
+      (profile as any).daily_kcal_target?.toString() ?? "2000",
+      (profile as any).daily_protein_g_target?.toString() ?? "100",
+      (profile as any).daily_carbs_g_target?.toString() ?? "250",
+      (profile as any).daily_fat_g_target?.toString() ?? "65",
+      (profile as any).notify_medicine ?? true,
+      (profile as any).notify_water ?? false,
+      ((profile as any).notify_water_interval_min ?? 120).toString(),
+      (profile as any).notify_daily_summary ?? false,
+      ((profile as any).notify_daily_summary_time ?? "21:00:00").slice(0, 5),
+    ]));
   }, [profile]);
+
+  const currentSnapshot = useMemo(
+    () => JSON.stringify([
+      displayName, dob, heightCm, waterTarget, walkTarget, goalWeight, weightUnit,
+      timezone, quietStart, quietEnd, kcalT, proteinT, carbsT, fatT,
+      notifyMed, notifyWater, notifyWaterInterval, notifyDaily, notifyDailyTime,
+    ]),
+    [displayName, dob, heightCm, waterTarget, walkTarget, goalWeight, weightUnit,
+     timezone, quietStart, quietEnd, kcalT, proteinT, carbsT, fatT,
+     notifyMed, notifyWater, notifyWaterInterval, notifyDaily, notifyDailyTime]
+  );
+  const isDirty = initialSnapshot !== "" && currentSnapshot !== initialSnapshot;
 
   const phone = user?.phone ? `+${user.phone}` : "—";
 
@@ -153,8 +193,9 @@ function SettingsPage() {
       notify_daily_summary_time: `${notifyDailyTime}:00`,
     } as any);
     setSavingProfile(false);
-    if (error) return showToast(error.message);
-    showToast("Saved");
+    if (error) return showToast(error.message, "error");
+    setInitialSnapshot(currentSnapshot); // form is now clean
+    showToast("Saved", "success");
   };
 
   // Push subscription state
@@ -247,8 +288,15 @@ function SettingsPage() {
     setCurrent(""); setNext(""); setConfirm(""); setOpen(false);
   };
 
+  const tabs = [
+    { k: "profile", label: "Profile" },
+    { k: "targets", label: "Targets" },
+    { k: "notifications", label: "Alerts" },
+    { k: "security", label: "Security" },
+  ] as const;
+
   return (
-    <div className="px-4 pt-12 pb-32">
+    <div className="px-4 pt-12 pb-32 relative">
       <div className="px-1 text-[12px] uppercase tracking-[0.18em] text-text-muted">
         Preferences
       </div>
@@ -258,6 +306,25 @@ function SettingsPage() {
       >
         Settings
       </h1>
+
+      {/* Section switcher — keeps the page focused, no giant scroll. */}
+      <div className="mt-5 flex gap-1 bg-bg-elevated border border-border rounded-xl p-1">
+        {tabs.map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setTab(t.k as typeof tab)}
+            className={`flex-1 px-2 py-1.5 rounded-lg text-[12px] transition-colors ${
+              tab === t.k
+                ? "bg-text-primary text-bg-base"
+                : "text-text-secondary"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "profile" && (<>
 
       <Section title="Profile">
         <Field label="Phone">
@@ -295,6 +362,9 @@ function SettingsPage() {
           />
         </Field>
       </Section>
+      </>)}
+
+      {tab === "targets" && (<>
 
       <Section title="Daily targets">
         <Field label="Water (ml)">
@@ -362,7 +432,9 @@ function SettingsPage() {
           </Field>
         ))}
       </Section>
+      </>)}
 
+      {tab === "notifications" && (<>
       <Section title="Time & notifications">
         <Field label="Timezone">
           <select
@@ -514,18 +586,9 @@ function SettingsPage() {
           </Field>
         )}
       </Section>
+      </>)}
 
-      <motion.button
-        whileTap={{ scale: 0.98 }}
-        onClick={saveAll}
-        disabled={savingProfile}
-        className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-text-primary text-bg-base font-medium text-[14px] disabled:opacity-30"
-      >
-        <Save size={15} />
-        {savingProfile ? "Saving…" : "Save changes"}
-      </motion.button>
-
-      {/* Security */}
+      {tab === "security" && (<>
       <Section title="Security">
         <button
           onClick={() => setOpen((o) => !o)}
@@ -583,6 +646,31 @@ function SettingsPage() {
         <LogOut size={16} />
         <span className="text-[14px]">Sign out</span>
       </button>
+      </>)}
+
+      {/* Sticky save bar — appears only when the form has unsaved changes. */}
+      <AnimatePresence>
+        {isDirty && tab !== "security" && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 360, damping: 32 }}
+            className="fixed left-1/2 -translate-x-1/2 bottom-[80px] z-[110] w-[calc(100%-32px)] max-w-[358px]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={saveAll}
+              disabled={savingProfile}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-text-primary text-bg-base font-medium text-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.5)] disabled:opacity-50"
+            >
+              <Save size={15} />
+              {savingProfile ? "Saving…" : "Save changes"}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
