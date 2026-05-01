@@ -288,8 +288,15 @@ function SettingsPage() {
     setCurrent(""); setNext(""); setConfirm(""); setOpen(false);
   };
 
+  const tabs = [
+    { k: "profile", label: "Profile" },
+    { k: "targets", label: "Targets" },
+    { k: "notifications", label: "Alerts" },
+    { k: "security", label: "Security" },
+  ] as const;
+
   return (
-    <div className="px-4 pt-12 pb-32">
+    <div className="px-4 pt-12 pb-32 relative">
       <div className="px-1 text-[12px] uppercase tracking-[0.18em] text-text-muted">
         Preferences
       </div>
@@ -299,6 +306,25 @@ function SettingsPage() {
       >
         Settings
       </h1>
+
+      {/* Section switcher — keeps the page focused, no giant scroll. */}
+      <div className="mt-5 flex gap-1 bg-bg-elevated border border-border rounded-xl p-1">
+        {tabs.map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setTab(t.k as typeof tab)}
+            className={`flex-1 px-2 py-1.5 rounded-lg text-[12px] transition-colors ${
+              tab === t.k
+                ? "bg-text-primary text-bg-base"
+                : "text-text-secondary"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "profile" && (<>
 
       <Section title="Profile">
         <Field label="Phone">
