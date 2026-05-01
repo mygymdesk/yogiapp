@@ -293,6 +293,11 @@ export type Database = {
           goal_weight_kg: number | null
           height_cm: number | null
           meal_slots: Json
+          notify_daily_summary: boolean
+          notify_daily_summary_time: string
+          notify_medicine: boolean
+          notify_water: boolean
+          notify_water_interval_min: number
           quiet_hours_end: string
           quiet_hours_start: string
           timezone: string
@@ -313,6 +318,11 @@ export type Database = {
           goal_weight_kg?: number | null
           height_cm?: number | null
           meal_slots?: Json
+          notify_daily_summary?: boolean
+          notify_daily_summary_time?: string
+          notify_medicine?: boolean
+          notify_water?: boolean
+          notify_water_interval_min?: number
           quiet_hours_end?: string
           quiet_hours_start?: string
           timezone?: string
@@ -333,6 +343,11 @@ export type Database = {
           goal_weight_kg?: number | null
           height_cm?: number | null
           meal_slots?: Json
+          notify_daily_summary?: boolean
+          notify_daily_summary_time?: string
+          notify_medicine?: boolean
+          notify_water?: boolean
+          notify_water_interval_min?: number
           quiet_hours_end?: string
           quiet_hours_start?: string
           timezone?: string
@@ -340,6 +355,39 @@ export type Database = {
           user_id?: string
           walking_target_min?: number
           weight_unit?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_used_at: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_used_at?: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_used_at?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
