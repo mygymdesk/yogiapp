@@ -74,6 +74,10 @@ function SettingsPage() {
   const [walkTarget, setWalkTarget] = useState<string>("");
   const [goalWeight, setGoalWeight] = useState<string>("");
   const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
+  const [kcalT, setKcalT] = useState<string>("");
+  const [proteinT, setProteinT] = useState<string>("");
+  const [carbsT, setCarbsT] = useState<string>("");
+  const [fatT, setFatT] = useState<string>("");
   // Time settings
   const [timezone, setTimezone] = useState("Asia/Kolkata");
   const [quietStart, setQuietStart] = useState("23:00");
@@ -93,6 +97,10 @@ function SettingsPage() {
     setTimezone(profile.timezone ?? "Asia/Kolkata");
     setQuietStart((profile.quiet_hours_start ?? "23:00:00").slice(0, 5));
     setQuietEnd((profile.quiet_hours_end ?? "07:00:00").slice(0, 5));
+    setKcalT((profile as any).daily_kcal_target?.toString() ?? "2000");
+    setProteinT((profile as any).daily_protein_g_target?.toString() ?? "100");
+    setCarbsT((profile as any).daily_carbs_g_target?.toString() ?? "250");
+    setFatT((profile as any).daily_fat_g_target?.toString() ?? "65");
   }, [profile]);
 
   const phone = user?.phone ? `+${user.phone}` : "—";
@@ -111,6 +119,10 @@ function SettingsPage() {
       timezone,
       quiet_hours_start: `${quietStart}:00`,
       quiet_hours_end: `${quietEnd}:00`,
+      daily_kcal_target: Number(kcalT) || 2000,
+      daily_protein_g_target: Number(proteinT) || 100,
+      daily_carbs_g_target: Number(carbsT) || 250,
+      daily_fat_g_target: Number(fatT) || 65,
     } as any);
     setSavingProfile(false);
     if (error) return showToast(error.message);
@@ -242,6 +254,25 @@ function SettingsPage() {
             ))}
           </div>
         </Field>
+      </Section>
+
+      <Section title="Macro targets">
+        {[
+          { l: "Calories (kcal)", v: kcalT, set: setKcalT },
+          { l: "Protein (g)", v: proteinT, set: setProteinT },
+          { l: "Carbs (g)", v: carbsT, set: setCarbsT },
+          { l: "Fat (g)", v: fatT, set: setFatT },
+        ].map((x) => (
+          <Field key={x.l} label={x.l}>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={x.v}
+              onChange={(e) => x.set(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+        ))}
       </Section>
 
       <Section title="Time & notifications">
