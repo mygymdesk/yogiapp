@@ -14,6 +14,153 @@ export type Database = {
   }
   public: {
     Tables: {
+      food_log_items: {
+        Row: {
+          carbs: number
+          created_at: string
+          fat: number
+          fiber: number
+          food_id: string | null
+          food_name: string
+          id: string
+          kcal: number
+          meal_log_id: string
+          protein: number
+          serving_g: number
+          user_id: string
+        }
+        Insert: {
+          carbs?: number
+          created_at?: string
+          fat?: number
+          fiber?: number
+          food_id?: string | null
+          food_name: string
+          id?: string
+          kcal?: number
+          meal_log_id: string
+          protein?: number
+          serving_g?: number
+          user_id: string
+        }
+        Update: {
+          carbs?: number
+          created_at?: string
+          fat?: number
+          fiber?: number
+          food_id?: string | null
+          food_name?: string
+          id?: string
+          kcal?: number
+          meal_log_id?: string
+          protein?: number
+          serving_g?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_log_items_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_log_items_meal_log_id_fkey"
+            columns: ["meal_log_id"]
+            isOneToOne: false
+            referencedRelation: "meal_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      foods: {
+        Row: {
+          carbs_per_100g: number
+          created_at: string
+          default_serving_g: number
+          fat_per_100g: number
+          fiber_per_100g: number
+          food_group: string | null
+          id: string
+          is_system: boolean
+          kcal_per_100g: number
+          name: string
+          protein_per_100g: number
+          source: string | null
+          source_code: string | null
+          tags: string[]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          carbs_per_100g?: number
+          created_at?: string
+          default_serving_g?: number
+          fat_per_100g?: number
+          fiber_per_100g?: number
+          food_group?: string | null
+          id?: string
+          is_system?: boolean
+          kcal_per_100g?: number
+          name: string
+          protein_per_100g?: number
+          source?: string | null
+          source_code?: string | null
+          tags?: string[]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          carbs_per_100g?: number
+          created_at?: string
+          default_serving_g?: number
+          fat_per_100g?: number
+          fiber_per_100g?: number
+          food_group?: string | null
+          id?: string
+          is_system?: boolean
+          kcal_per_100g?: number
+          name?: string
+          protein_per_100g?: number
+          source?: string | null
+          source_code?: string | null
+          tags?: string[]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      meal_logs: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          logged_at: string
+          note: string | null
+          slot: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          logged_at?: string
+          note?: string | null
+          slot?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          logged_at?: string
+          note?: string | null
+          slot?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medicine_logs: {
         Row: {
           date: string
@@ -136,11 +283,16 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          daily_carbs_g_target: number
+          daily_fat_g_target: number
+          daily_kcal_target: number
+          daily_protein_g_target: number
           daily_water_target_ml: number
           display_name: string | null
           dob: string | null
           goal_weight_kg: number | null
           height_cm: number | null
+          meal_slots: Json
           quiet_hours_end: string
           quiet_hours_start: string
           timezone: string
@@ -151,11 +303,16 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          daily_carbs_g_target?: number
+          daily_fat_g_target?: number
+          daily_kcal_target?: number
+          daily_protein_g_target?: number
           daily_water_target_ml?: number
           display_name?: string | null
           dob?: string | null
           goal_weight_kg?: number | null
           height_cm?: number | null
+          meal_slots?: Json
           quiet_hours_end?: string
           quiet_hours_start?: string
           timezone?: string
@@ -166,11 +323,16 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          daily_carbs_g_target?: number
+          daily_fat_g_target?: number
+          daily_kcal_target?: number
+          daily_protein_g_target?: number
           daily_water_target_ml?: number
           display_name?: string | null
           dob?: string | null
           goal_weight_kg?: number | null
           height_cm?: number | null
+          meal_slots?: Json
           quiet_hours_end?: string
           quiet_hours_start?: string
           timezone?: string
