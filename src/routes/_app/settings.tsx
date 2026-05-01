@@ -117,6 +117,9 @@ function SettingsPage() {
     setProteinT((profile as any).daily_protein_g_target?.toString() ?? "100");
     setCarbsT((profile as any).daily_carbs_g_target?.toString() ?? "250");
     setFatT((profile as any).daily_fat_g_target?.toString() ?? "65");
+    setNotifyMed((profile as any).notify_medicine ?? true);
+    setNotifyWater((profile as any).notify_water ?? false);
+    setNotifyWaterInterval(((profile as any).notify_water_interval_min ?? 120).toString());
   }, [profile]);
 
   const phone = user?.phone ? `+${user.phone}` : "—";
