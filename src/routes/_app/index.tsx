@@ -229,6 +229,7 @@ function TodayPage() {
             onClick={() => setMoodOpen(true)}
           />
         </section>
+        )}
 
         <div className="h-8" />
       </div>
