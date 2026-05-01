@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      mood_logs: {
+        Row: {
+          date: string
+          id: string
+          logged_at: string
+          mood: number
+          note: string | null
+          tags: string[]
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          id?: string
+          logged_at?: string
+          mood: number
+          note?: string | null
+          tags?: string[]
+          user_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          logged_at?: string
+          mood?: number
+          note?: string | null
+          tags?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          daily_water_target_ml: number
+          display_name: string | null
+          dob: string | null
+          height_cm: number | null
+          quiet_hours_end: string
+          quiet_hours_start: string
+          timezone: string
+          updated_at: string
+          user_id: string
+          walking_target_min: number
+          weight_unit: string
+        }
+        Insert: {
+          created_at?: string
+          daily_water_target_ml?: number
+          display_name?: string | null
+          dob?: string | null
+          height_cm?: number | null
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+          walking_target_min?: number
+          weight_unit?: string
+        }
+        Update: {
+          created_at?: string
+          daily_water_target_ml?: number
+          display_name?: string | null
+          dob?: string | null
+          height_cm?: number | null
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+          walking_target_min?: number
+          weight_unit?: string
+        }
+        Relationships: []
+      }
+      water_logs: {
+        Row: {
+          amount_ml: number
+          id: string
+          logged_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_ml: number
+          id?: string
+          logged_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_ml?: number
+          id?: string
+          logged_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
