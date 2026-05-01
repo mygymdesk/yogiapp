@@ -65,7 +65,7 @@ async function makeVapidJwt(audience: string, subject: string, pubKeyB64u: strin
   const signingInput = `${enc(header)}.${enc(payload)}`;
   const key = await importVapidPrivateKey(privKeyB64u, pubKeyB64u);
   const sig = new Uint8Array(
-    await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, utf8(signingInput))
+    await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, utf8(signingInput) as BufferSource)
   );
   // sig is r||s raw (64 bytes) — exactly what JWS ES256 expects
   return `${signingInput}.${bytesToB64u(sig)}`;
@@ -73,9 +73,9 @@ async function makeVapidJwt(audience: string, subject: string, pubKeyB64u: strin
 
 // ---------- HKDF ----------
 async function hkdf(salt: Uint8Array, ikm: Uint8Array, info: Uint8Array, length: number) {
-  const baseKey = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
+  const baseKey = await crypto.subtle.importKey("raw", ikm as BufferSource, "HKDF", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
-    { name: "HKDF", hash: "SHA-256", salt, info } as HkdfParams,
+    { name: "HKDF", hash: "SHA-256", salt: salt as BufferSource, info: info as BufferSource } as HkdfParams,
     baseKey,
     length * 8
   );
@@ -98,7 +98,7 @@ async function encryptAes128Gcm(payload: Uint8Array, p256dhB64u: string, authB64
   // import subscriber public key
   const subPub = await crypto.subtle.importKey(
     "raw",
-    subscriberPubRaw,
+    subscriberPubRaw as BufferSource,
     { name: "ECDH", namedCurve: "P-256" },
     true,
     []
@@ -132,9 +132,9 @@ async function encryptAes128Gcm(payload: Uint8Array, p256dhB64u: string, authB64
   const padded = concat(payload, new Uint8Array([0x02]));
 
   // encrypt
-  const aesKey = await crypto.subtle.importKey("raw", cek, { name: "AES-GCM" }, false, ["encrypt"]);
+  const aesKey = await crypto.subtle.importKey("raw", cek as BufferSource, { name: "AES-GCM" }, false, ["encrypt"]);
   const cipher = new Uint8Array(
-    await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded)
+    await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce as BufferSource }, aesKey, padded as BufferSource)
   );
 
   // Build aes128gcm content-coding header (RFC 8188 §2.1):
@@ -191,7 +191,7 @@ export async function sendWebPush(
       Urgency: opts.urgency ?? "normal",
       Authorization: `vapid t=${jwt}, k=${VAPID_PUBLIC}`,
     },
-    body: ciphertext,
+    body: ciphertext as BodyInit,
   });
 
   const expired = res.status === 404 || res.status === 410;
