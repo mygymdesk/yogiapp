@@ -432,7 +432,9 @@ function SettingsPage() {
           </Field>
         ))}
       </Section>
+      </>)}
 
+      {tab === "notifications" && (<>
       <Section title="Time & notifications">
         <Field label="Timezone">
           <select
