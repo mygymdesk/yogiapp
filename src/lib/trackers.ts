@@ -4,6 +4,26 @@ import { useAuth } from "./auth";
 import { format } from "date-fns";
 
 export const DEFAULT_WATER_TARGET_ML = 2500;
+export const DEFAULT_WALK_TARGET_MIN = 30;
+
+export type WeightLog = {
+  id: string;
+  date: string;
+  weight_kg: number;
+  body_fat_pct: number | null;
+  waist_cm: number | null;
+  chest_cm: number | null;
+  logged_at: string;
+};
+
+export type WalkLog = {
+  id: string;
+  date: string;
+  duration_min: number;
+  distance_km: number | null;
+  notes: string | null;
+  logged_at: string;
+};
 
 export function useTodayWater() {
   const { user } = useAuth();
