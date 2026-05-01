@@ -1,6 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import { PhoneFrame } from "../components/PhoneFrame";
-import { BottomTabBar } from "../components/BottomTabBar";
+import { AuthProvider } from "@/lib/auth";
 
 import appCss from "../styles.css?url";
 
@@ -8,13 +7,10 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-base px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-text-primary" style={{ fontFamily: "Fraunces, serif" }}>404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-text-primary">Page not found</h2>
+        <h1 className="text-7xl text-text-primary" style={{ fontFamily: "Fraunces, serif" }}>404</h1>
+        <h2 className="mt-4 text-xl font-semibold text-text-primary">Not found</h2>
         <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-text-primary px-4 py-2 text-sm font-medium text-bg-base"
-          >
+          <Link to="/" className="inline-flex items-center justify-center rounded-md bg-text-primary px-4 py-2 text-sm font-medium text-bg-base">
             Go home
           </Link>
         </div>
@@ -27,10 +23,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1",
-      },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" },
       { name: "theme-color", content: "#0A0A0B" },
       { title: "Daily — Health Tracker" },
       { name: "description", content: "A personal daily health tracker." },
@@ -46,7 +39,11 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootShell,
-  component: RootComponent,
+  component: () => (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  ),
   notFoundComponent: NotFoundComponent,
 });
 
@@ -61,18 +58,5 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <Scripts />
       </body>
     </html>
-  );
-}
-
-function RootComponent() {
-  return (
-    <PhoneFrame>
-      <div className="absolute inset-0 flex flex-col">
-        <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
-          <Outlet />
-        </main>
-        <BottomTabBar />
-      </div>
-    </PhoneFrame>
   );
 }
