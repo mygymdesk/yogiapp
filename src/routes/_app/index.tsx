@@ -18,6 +18,7 @@ import {
   DEFAULT_WALK_TARGET_MIN,
 } from "@/lib/trackers";
 import { useMedicines } from "@/lib/medicines";
+import { useTodayMeals } from "@/lib/diet";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "Today — Daily" }] }),
@@ -52,15 +53,18 @@ function TodayPage() {
   const { todayMinutes, todayKm } = useWalkLogs(7);
   const { profile } = useProfile();
   const { takenCount, totalCount, doses } = useMedicines();
+  const { totals: dietTotals } = useTodayMeals();
 
   const walkTarget = profile?.walking_target_min ?? DEFAULT_WALK_TARGET_MIN;
   const waterTarget = profile?.daily_water_target_ml ?? DEFAULT_WATER_TARGET_ML;
+  const kcalTarget = (profile as any)?.daily_kcal_target ?? 2000;
 
   const waterPct = Math.min(100, (totalMl / waterTarget) * 100);
   const walkPct = Math.min(100, (todayMinutes / walkTarget) * 100);
   const moodPct = mood ? 100 : 0;
   const medPct = totalCount > 0 ? (takenCount / totalCount) * 100 : 0;
-  const buckets = [waterPct, walkPct, moodPct];
+  const dietPct = Math.min(100, (dietTotals.kcal / kcalTarget) * 100);
+  const buckets = [waterPct, walkPct, moodPct, dietPct];
   if (totalCount > 0) buckets.push(medPct);
   const adherence = Math.round(buckets.reduce((a, b) => a + b, 0) / buckets.length);
 
@@ -92,9 +96,20 @@ function TodayPage() {
           <TrackerTile
             icon={Apple}
             label="Diet"
-            primary="0 / 0 kcal"
-            secondary="No active plan"
             accent="diet"
+            ringValue={dietPct}
+            to="/diet"
+            primary={
+              <span>
+                <CountUp value={Math.round(dietTotals.kcal)} />
+                <span className="text-text-muted text-[14px] ml-1">/ {kcalTarget} kcal</span>
+              </span>
+            }
+            secondary={
+              dietTotals.kcal === 0
+                ? "Tap to log your first meal"
+                : `${Math.round(dietTotals.protein)}g P · ${Math.round(dietTotals.carbs)}g C · ${Math.round(dietTotals.fat)}g F`
+            }
           />
           <TrackerTile
             icon={Pill}
