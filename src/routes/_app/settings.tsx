@@ -142,10 +142,73 @@ function SettingsPage() {
       daily_protein_g_target: Number(proteinT) || 100,
       daily_carbs_g_target: Number(carbsT) || 250,
       daily_fat_g_target: Number(fatT) || 65,
+      notify_medicine: notifyMed,
+      notify_water: notifyWater,
+      notify_water_interval_min: Math.max(30, Number(notifyWaterInterval) || 120),
     } as any);
     setSavingProfile(false);
     if (error) return showToast(error.message);
     showToast("Saved");
+  };
+
+  // Push subscription state
+  const getVapid = useServerFn(getVapidPublicKey);
+  const sendTest = useServerFn(sendTestPush);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!isPushSupported()) return;
+      const perm = await getPushPermission();
+      if (cancelled) return;
+      setPushPerm(perm);
+      const sub = await getCurrentSubscription();
+      if (cancelled) return;
+      setPushSubscribed(!!sub);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const enablePush = async () => {
+    setPushBusy(true);
+    haptic();
+    try {
+      const { publicKey } = await getVapid();
+      if (!publicKey) throw new Error("Push not configured (missing VAPID key)");
+      await subscribeToPush(publicKey);
+      setPushSubscribed(true);
+      setPushPerm("granted");
+      showToast("Notifications enabled");
+    } catch (e: any) {
+      showToast(e?.message ?? "Could not enable");
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const disablePush = async () => {
+    setPushBusy(true);
+    try {
+      await unsubscribeFromPush();
+      setPushSubscribed(false);
+      showToast("Notifications disabled");
+    } catch (e: any) {
+      showToast(e?.message ?? "Could not disable");
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const sendTestNotification = async () => {
+    setPushBusy(true);
+    try {
+      const r = await sendTest();
+      showToast(r.sent > 0 ? `Sent to ${r.sent} device${r.sent === 1 ? "" : "s"}` : "No devices subscribed");
+    } catch (e: any) {
+      showToast(e?.message ?? "Failed");
+    } finally {
+      setPushBusy(false);
+    }
   };
 
   // Password change
