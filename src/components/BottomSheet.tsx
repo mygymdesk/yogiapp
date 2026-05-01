@@ -1,0 +1,76 @@
+import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import type { ReactNode } from "react";
+import { useEffect } from "react";
+
+/**
+ * Premium bottom sheet. Drag-to-dismiss with rubber-band, slide+fade entrance.
+ * Reusable across every tracker.
+ */
+export function BottomSheet({
+  open,
+  onClose,
+  children,
+  title,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  title?: string;
+}) {
+  const y = useMotionValue(0);
+  const overlayOpacity = useTransform(y, [0, 400], [1, 0]);
+
+  useEffect(() => {
+    if (open) y.set(0);
+  }, [open, y]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop — opacity tied to drag for rubber-band feel */}
+          <motion.div
+            className="absolute inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            style={{ opacity: overlayOpacity }}
+            onClick={onClose}
+          />
+          {/* Sheet */}
+          <motion.div
+            className="absolute left-0 right-0 bottom-0 z-50 bg-bg-surface border-t border-border"
+            style={{
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              y,
+              paddingBottom: "env(safe-area-inset-bottom)",
+            }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 320, damping: 32, mass: 0.8 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.04, bottom: 0.6 }}
+            onDragEnd={(_e, info) => {
+              if (info.offset.y > 120 || info.velocity.y > 600) onClose();
+            }}
+          >
+            {/* Drag handle */}
+            <div className="pt-3 pb-1 flex justify-center">
+              <div className="h-1 w-10 rounded-full bg-text-muted/40" />
+            </div>
+            {title && (
+              <div className="px-5 pt-2 pb-3 text-[13px] uppercase tracking-[0.16em] text-text-muted text-center">
+                {title}
+              </div>
+            )}
+            <div className="px-5 pb-6">{children}</div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
