@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Premium bottom sheet. Drag-to-dismiss with rubber-band, slide+fade entrance.
