@@ -646,6 +646,31 @@ function SettingsPage() {
         <LogOut size={16} />
         <span className="text-[14px]">Sign out</span>
       </button>
+      </>)}
+
+      {/* Sticky save bar — appears only when the form has unsaved changes. */}
+      <AnimatePresence>
+        {isDirty && tab !== "security" && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 360, damping: 32 }}
+            className="fixed left-1/2 -translate-x-1/2 bottom-[80px] z-[110] w-[calc(100%-32px)] max-w-[358px]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={saveAll}
+              disabled={savingProfile}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-text-primary text-bg-base font-medium text-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.5)] disabled:opacity-50"
+            >
+              <Save size={15} />
+              {savingProfile ? "Saving…" : "Save changes"}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
