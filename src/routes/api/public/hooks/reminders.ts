@@ -131,6 +131,24 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
                 }
               }
             }
+
+            // Daily summary — fire once per day within 15 min of configured time
+            if (p.notify_daily_summary) {
+              const summary = (p.notify_daily_summary_time || "21:00:00").slice(0, 5);
+              const [sh, sm] = summary.split(":").map(Number);
+              const sMin = sh * 60 + sm;
+              const nowMin2 = local.getHours() * 60 + local.getMinutes();
+              if (sMin <= nowMin2 && nowMin2 - sMin < 15) {
+                await sendPushToUser({
+                  userId: p.user_id,
+                  title: "🌙 Daily wrap-up",
+                  body: "Open Daily to see today's progress.",
+                  url: "/insights",
+                  tag: `summary-${p.user_id}-${localDate}`,
+                });
+                result.summarySent++;
+              }
+            }
           }
         } catch (e: any) {
           console.error("reminders error", e);
