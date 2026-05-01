@@ -21,6 +21,7 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
         const result = {
           medicineSent: 0,
           waterSent: 0,
+          summarySent: 0,
           errors: [] as string[],
         };
 
