@@ -21,8 +21,13 @@ import {
 import { useMedicines } from "@/lib/medicines";
 import { useTodayMeals } from "@/lib/diet";
 
+import { RouteError } from "@/components/RouteError";
+
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "Today — Daily" }] }),
+  errorComponent: ({ error, reset }) => (
+    <RouteError error={error} reset={reset} label="today" />
+  ),
   component: TodayPage,
 });
 
