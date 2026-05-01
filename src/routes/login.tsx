@@ -26,6 +26,14 @@ const COUNTRY_CODES = [
   { code: "+33", name: "France" },
 ];
 
+function formatPhone(d: string) {
+  // Group as `XXXXX XXXXX XX` for readability — display only, doesn't affect digits.
+  const a = d.slice(0, 5);
+  const b = d.slice(5, 10);
+  const c = d.slice(10, 12);
+  return [a, b, c].filter(Boolean).join(" ");
+}
+
 function LoginPage() {
   const [country, setCountry] = useState("+91");
   const [phone, setPhone] = useState("");
@@ -35,6 +43,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [shake, setShake] = useState(false);
+  const [capsOn, setCapsOn] = useState(false);
   const showToast = useToastStore((s) => s.show);
   const navigate = useNavigate();
 
