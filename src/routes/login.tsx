@@ -33,18 +33,28 @@ function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [shake, setShake] = useState(false);
   const showToast = useToastStore((s) => s.show);
   const navigate = useNavigate();
 
   const localDigits = phone.replace(/\D/g, "");
   const syntheticEmail = `${localDigits}@daily.local`;
 
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 450);
+  };
+
   const submit = async () => {
+    if (loading || success) return;
     if (localDigits.length < 6) {
+      triggerShake();
       showToast("Enter a valid phone number");
       return;
     }
     if (password.length < 6) {
+      triggerShake();
       showToast("Enter your password");
       return;
     }
@@ -54,13 +64,20 @@ function LoginPage() {
       email: syntheticEmail,
       password,
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
+      triggerShake();
       showToast(error.message || "Invalid credentials");
       return;
     }
-    showToast("Welcome");
-    navigate({ to: "/" });
+    // Show success state briefly so the transition isn't abrupt.
+    setLoading(false);
+    setSuccess(true);
+    haptic();
+    // Wait one paint + a beat before navigating, so the user sees the check.
+    requestAnimationFrame(() => {
+      setTimeout(() => navigate({ to: "/" }), 280);
+    });
   };
 
   return (
