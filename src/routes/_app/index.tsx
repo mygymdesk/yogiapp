@@ -48,13 +48,14 @@ function TodayPage() {
   const [moodOpen, setMoodOpen] = useState(false);
   const [medOpen, setMedOpen] = useState(false);
 
-  const { totalMl } = useTodayWater();
-  const { mood } = useTodayMood();
-  const { latest: latestWeight, delta: weightDelta } = useWeightLogs(7);
-  const { todayMinutes, todayKm } = useWalkLogs(7);
-  const { profile } = useProfile();
-  const { takenCount, totalCount, doses } = useMedicines();
-  const { totals: dietTotals } = useTodayMeals();
+  const { totalMl, loading: lW } = useTodayWater();
+  const { mood, loading: lM } = useTodayMood();
+  const { latest: latestWeight, delta: weightDelta, loading: lWt } = useWeightLogs(7);
+  const { todayMinutes, todayKm, loading: lWk } = useWalkLogs(7);
+  const { profile, loading: lP } = useProfile();
+  const { takenCount, totalCount, doses, loading: lMed } = useMedicines();
+  const { totals: dietTotals, loading: lD } = useTodayMeals();
+  const initialLoading = lW && lM && lWt && lWk && lP && lMed && lD;
 
   const walkTarget = profile?.walking_target_min ?? DEFAULT_WALK_TARGET_MIN;
   const waterTarget = profile?.daily_water_target_ml ?? DEFAULT_WATER_TARGET_ML;
