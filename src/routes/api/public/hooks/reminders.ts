@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
           const { data: profiles } = await supabaseAdmin
             .from("profiles")
             .select(
-              "user_id,timezone,quiet_hours_start,quiet_hours_end,notify_water,notify_water_interval_min,notify_medicine"
+              "user_id,timezone,quiet_hours_start,quiet_hours_end,notify_water,notify_water_interval_min,notify_medicine,notify_daily_summary,notify_daily_summary_time"
             )
             .in("user_id", userIds);
 
