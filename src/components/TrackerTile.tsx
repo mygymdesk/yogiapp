@@ -1,24 +1,16 @@
 import type { LucideIcon } from "lucide-react";
-import { Card } from "./Card";
+import { motion } from "framer-motion";
+import { MiniRing } from "./MiniRing";
 
 type AccentKey = "diet" | "med" | "water" | "walk" | "weight" | "mood";
 
-const accentClass: Record<AccentKey, string> = {
-  diet: "text-acc-diet",
-  med: "text-acc-med",
-  water: "text-acc-water",
-  walk: "text-acc-walk",
-  weight: "text-acc-weight",
-  mood: "text-acc-mood",
-};
-
-const accentBgClass: Record<AccentKey, string> = {
-  diet: "bg-acc-diet/10",
-  med: "bg-acc-med/10",
-  water: "bg-acc-water/10",
-  walk: "bg-acc-walk/10",
-  weight: "bg-acc-weight/10",
-  mood: "bg-acc-mood/10",
+const accentVar: Record<AccentKey, string> = {
+  diet: "var(--acc-diet)",
+  med: "var(--acc-med)",
+  water: "var(--acc-water)",
+  walk: "var(--acc-walk)",
+  weight: "var(--acc-weight)",
+  mood: "var(--acc-mood)",
 };
 
 export function TrackerTile({
@@ -27,21 +19,46 @@ export function TrackerTile({
   primary,
   secondary,
   accent,
+  onClick,
+  ringValue,
+  trailing,
 }: {
   icon: LucideIcon;
   label: string;
-  primary: string;
-  secondary?: string;
+  primary: React.ReactNode;
+  secondary?: React.ReactNode;
   accent: AccentKey;
+  onClick?: () => void;
+  ringValue?: number; // 0..100, shows mini ring instead of icon background
+  trailing?: React.ReactNode;
 }) {
+  const color = accentVar[accent];
   return (
-    <Card onClick={() => {}}>
+    <motion.button
+      onClick={onClick}
+      whileTap={onClick ? { scale: 0.985 } : undefined}
+      transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+      className="w-full text-left bg-bg-surface border border-border rounded-[20px] p-4 active:border-border-hover/30"
+    >
       <div className="flex items-center gap-4">
-        <div
-          className={`size-11 rounded-2xl flex items-center justify-center ${accentBgClass[accent]}`}
-        >
-          <Icon size={20} className={accentClass[accent]} strokeWidth={2} />
-        </div>
+        {ringValue !== undefined ? (
+          <div className="size-11 relative flex items-center justify-center">
+            <MiniRing value={ringValue} color={color} size={44} stroke={3} />
+            <Icon
+              size={16}
+              strokeWidth={2}
+              className="absolute"
+              style={{ color }}
+            />
+          </div>
+        ) : (
+          <div
+            className="size-11 rounded-2xl flex items-center justify-center"
+            style={{ backgroundColor: `${color}1a` }}
+          >
+            <Icon size={20} strokeWidth={2} style={{ color }} />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="text-[11px] uppercase tracking-[0.12em] text-text-muted font-medium">
             {label}
@@ -58,7 +75,8 @@ export function TrackerTile({
             </div>
           )}
         </div>
+        {trailing}
       </div>
-    </Card>
+    </motion.button>
   );
 }
