@@ -91,8 +91,16 @@ function TodayPage() {
         </header>
 
         <section className="flex justify-center my-6">
-          <AdherenceRing value={adherence} />
+          <AdherenceRing value={initialLoading ? 0 : adherence} />
         </section>
+
+        {initialLoading ? (
+          <section className="flex flex-col gap-3 mt-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <TodayTileSkeleton key={i} />
+            ))}
+          </section>
+        ) : (
 
         <section className="flex flex-col gap-3 mt-4">
           <TrackerTile
