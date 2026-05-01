@@ -24,6 +24,16 @@ export function BottomSheet({
     if (open) y.set(0);
   }, [open, y]);
 
+  // Lock body scroll + close on Escape while sheet is open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -40,12 +50,16 @@ export function BottomSheet({
           />
           {/* Sheet */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={title ?? "Sheet"}
             className="absolute left-0 right-0 bottom-0 z-50 bg-bg-surface border-t border-border"
             style={{
               borderTopLeftRadius: 28,
               borderTopRightRadius: 28,
               y,
               paddingBottom: "env(safe-area-inset-bottom)",
+              boxShadow: "0 -20px 60px rgba(0,0,0,0.6)",
             }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -60,7 +74,7 @@ export function BottomSheet({
           >
             {/* Drag handle */}
             <div className="pt-3 pb-1 flex justify-center">
-              <div className="h-1 w-10 rounded-full bg-text-muted/40" />
+              <div className="h-1 w-10 rounded-full bg-text-muted/50" />
             </div>
             {title && (
               <div className="px-5 pt-2 pb-3 text-[13px] uppercase tracking-[0.16em] text-text-muted text-center">
