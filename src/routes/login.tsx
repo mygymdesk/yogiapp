@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Eye, EyeOff } from "lucide-react";
+import { ChevronDown, Eye, EyeOff, Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useToastStore, haptic } from "@/lib/feedback";
