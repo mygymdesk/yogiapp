@@ -106,6 +106,8 @@ function SettingsPage() {
   const [pushBusy, setPushBusy] = useState(false);
 
   const [savingProfile, setSavingProfile] = useState(false);
+  const [tab, setTab] = useState<"profile" | "targets" | "notifications" | "security">("profile");
+  const [initialSnapshot, setInitialSnapshot] = useState<string>("");
 
   useEffect(() => {
     if (!profile) return;
@@ -128,7 +130,41 @@ function SettingsPage() {
     setNotifyWaterInterval(((profile as any).notify_water_interval_min ?? 120).toString());
     setNotifyDaily((profile as any).notify_daily_summary ?? false);
     setNotifyDailyTime(((profile as any).notify_daily_summary_time ?? "21:00:00").slice(0, 5));
+    // Snapshot for dirty detection — taken right after seed.
+    setInitialSnapshot(JSON.stringify([
+      profile.display_name ?? "",
+      (profile as any).dob ?? "",
+      profile.height_cm?.toString() ?? "",
+      profile.daily_water_target_ml?.toString() ?? "",
+      profile.walking_target_min?.toString() ?? "",
+      profile.goal_weight_kg?.toString() ?? "",
+      profile.weight_unit ?? "kg",
+      profile.timezone ?? "Asia/Kolkata",
+      (profile.quiet_hours_start ?? "23:00:00").slice(0, 5),
+      (profile.quiet_hours_end ?? "07:00:00").slice(0, 5),
+      (profile as any).daily_kcal_target?.toString() ?? "2000",
+      (profile as any).daily_protein_g_target?.toString() ?? "100",
+      (profile as any).daily_carbs_g_target?.toString() ?? "250",
+      (profile as any).daily_fat_g_target?.toString() ?? "65",
+      (profile as any).notify_medicine ?? true,
+      (profile as any).notify_water ?? false,
+      ((profile as any).notify_water_interval_min ?? 120).toString(),
+      (profile as any).notify_daily_summary ?? false,
+      ((profile as any).notify_daily_summary_time ?? "21:00:00").slice(0, 5),
+    ]));
   }, [profile]);
+
+  const currentSnapshot = useMemo(
+    () => JSON.stringify([
+      displayName, dob, heightCm, waterTarget, walkTarget, goalWeight, weightUnit,
+      timezone, quietStart, quietEnd, kcalT, proteinT, carbsT, fatT,
+      notifyMed, notifyWater, notifyWaterInterval, notifyDaily, notifyDailyTime,
+    ]),
+    [displayName, dob, heightCm, waterTarget, walkTarget, goalWeight, weightUnit,
+     timezone, quietStart, quietEnd, kcalT, proteinT, carbsT, fatT,
+     notifyMed, notifyWater, notifyWaterInterval, notifyDaily, notifyDailyTime]
+  );
+  const isDirty = initialSnapshot !== "" && currentSnapshot !== initialSnapshot;
 
   const phone = user?.phone ? `+${user.phone}` : "—";
 
