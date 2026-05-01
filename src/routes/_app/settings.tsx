@@ -91,6 +91,13 @@ function SettingsPage() {
   const [timezone, setTimezone] = useState("Asia/Kolkata");
   const [quietStart, setQuietStart] = useState("23:00");
   const [quietEnd, setQuietEnd] = useState("07:00");
+  // Notifications
+  const [notifyMed, setNotifyMed] = useState(true);
+  const [notifyWater, setNotifyWater] = useState(false);
+  const [notifyWaterInterval, setNotifyWaterInterval] = useState("120");
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushPerm, setPushPerm] = useState<NotificationPermission>("default");
+  const [pushBusy, setPushBusy] = useState(false);
 
   const [savingProfile, setSavingProfile] = useState(false);
 
