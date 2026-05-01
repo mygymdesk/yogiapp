@@ -17,6 +17,7 @@ import { Route as AppWalkRouteImport } from './routes/_app/walk'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppPlanRouteImport } from './routes/_app/plan'
 import { Route as AppInsightsRouteImport } from './routes/_app/insights'
+import { Route as AppDietRouteImport } from './routes/_app/diet'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -57,10 +58,16 @@ const AppInsightsRoute = AppInsightsRouteImport.update({
   path: '/insights',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDietRoute = AppDietRouteImport.update({
+  id: '/diet',
+  path: '/diet',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/diet': typeof AppDietRoute
   '/insights': typeof AppInsightsRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/diet': typeof AppDietRoute
   '/insights': typeof AppInsightsRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/diet': typeof AppDietRoute
   '/_app/insights': typeof AppInsightsRoute
   '/_app/plan': typeof AppPlanRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -92,17 +101,27 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/diet'
     | '/insights'
     | '/plan'
     | '/settings'
     | '/walk'
     | '/weight'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/insights' | '/plan' | '/settings' | '/walk' | '/weight' | '/'
+  to:
+    | '/login'
+    | '/diet'
+    | '/insights'
+    | '/plan'
+    | '/settings'
+    | '/walk'
+    | '/weight'
+    | '/'
   id:
     | '__root__'
     | '/_app'
     | '/login'
+    | '/_app/diet'
     | '/_app/insights'
     | '/_app/plan'
     | '/_app/settings'
@@ -174,10 +193,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInsightsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/diet': {
+      id: '/_app/diet'
+      path: '/diet'
+      fullPath: '/diet'
+      preLoaderRoute: typeof AppDietRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppDietRoute: typeof AppDietRoute
   AppInsightsRoute: typeof AppInsightsRoute
   AppPlanRoute: typeof AppPlanRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -187,6 +214,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDietRoute: AppDietRoute,
   AppInsightsRoute: AppInsightsRoute,
   AppPlanRoute: AppPlanRoute,
   AppSettingsRoute: AppSettingsRoute,
