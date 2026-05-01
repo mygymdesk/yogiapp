@@ -362,6 +362,9 @@ function SettingsPage() {
           />
         </Field>
       </Section>
+      </>)}
+
+      {tab === "targets" && (<>
 
       <Section title="Daily targets">
         <Field label="Water (ml)">
