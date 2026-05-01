@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
 import { format } from "date-fns";
@@ -42,26 +43,30 @@ function isScheduledToday(m: Medicine, date: Date): boolean {
 
 export function useMedicines() {
   const { user } = useAuth();
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
-  const [todayLogs, setTodayLogs] = useState<MedicineLog[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  const qc = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
+  const key = ["medicines", user?.id, today] as const;
 
-  const fetchAll = useCallback(async () => {
-    if (!user) return;
-    const [{ data: meds }, { data: logs }] = await Promise.all([
-      supabase.from("medicines").select("*").order("created_at", { ascending: true }),
-      supabase.from("medicine_logs").select("*").eq("date", today),
-    ]);
-    if (meds) setMedicines(meds as Medicine[]);
-    if (logs) setTodayLogs(logs as MedicineLog[]);
-    setLoading(false);
-  }, [user, today]);
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async () => {
+      const [{ data: meds }, { data: logs }] = await Promise.all([
+        supabase
+          .from("medicines")
+          .select("*")
+          .order("created_at", { ascending: true }),
+        supabase.from("medicine_logs").select("*").eq("date", today),
+      ]);
+      return {
+        medicines: (meds ?? []) as Medicine[],
+        todayLogs: (logs ?? []) as MedicineLog[],
+      };
+    },
+  });
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  const medicines = query.data?.medicines ?? [];
+  const todayLogs = query.data?.todayLogs ?? [];
 
   // Build today's dose schedule
   const now = new Date();
@@ -69,7 +74,10 @@ export function useMedicines() {
   for (const m of medicines) {
     if (!isScheduledToday(m, now)) continue;
     for (const t of m.schedule_times) {
-      const log = todayLogs.find((l) => l.medicine_id === m.id && l.scheduled_time === t) ?? null;
+      const log =
+        todayLogs.find(
+          (l) => l.medicine_id === m.id && l.scheduled_time === t
+        ) ?? null;
       doses.push({ medicine: m, scheduled_time: t, log });
     }
   }
@@ -78,43 +86,54 @@ export function useMedicines() {
   const takenCount = doses.filter((d) => d.log?.status === "taken").length;
   const totalCount = doses.length;
 
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: ["medicines", user?.id] });
+
   const markTaken = useCallback(
-    async (medicine_id: string, scheduled_time: string, status: "taken" | "skipped" = "taken") => {
+    async (
+      medicine_id: string,
+      scheduled_time: string,
+      status: "taken" | "skipped" = "taken"
+    ) => {
       if (!user) return { error: new Error("not signed in") };
-      const { error } = await supabase
-        .from("medicine_logs")
-        .upsert(
-          {
-            user_id: user.id,
-            medicine_id,
-            date: today,
-            scheduled_time,
-            status,
-            taken_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id,medicine_id,date,scheduled_time" }
-        );
-      if (!error) await fetchAll();
+      const { error } = await supabase.from("medicine_logs").upsert(
+        {
+          user_id: user.id,
+          medicine_id,
+          date: today,
+          scheduled_time,
+          status,
+          taken_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,medicine_id,date,scheduled_time" }
+      );
+      if (!error) await invalidate();
       return { error };
     },
-    [user, today, fetchAll]
+    [user, today]
   );
 
-  const undoDose = useCallback(
-    async (log_id: string) => {
-      const { error } = await supabase.from("medicine_logs").delete().eq("id", log_id);
-      if (!error) await fetchAll();
-      return { error };
-    },
-    [fetchAll]
-  );
+  const undoDose = useCallback(async (log_id: string) => {
+    const { error } = await supabase
+      .from("medicine_logs")
+      .delete()
+      .eq("id", log_id);
+    if (!error) await invalidate();
+    return { error };
+  }, []);
 
   const saveMedicine = useCallback(
-    async (input: Partial<Medicine> & { name: string; schedule_times: string[] }, id?: string) => {
+    async (
+      input: Partial<Medicine> & { name: string; schedule_times: string[] },
+      id?: string
+    ) => {
       if (!user) return { error: new Error("not signed in") };
       if (id) {
-        const { error } = await supabase.from("medicines").update(input).eq("id", id);
-        if (!error) await fetchAll();
+        const { error } = await supabase
+          .from("medicines")
+          .update(input)
+          .eq("id", id);
+        if (!error) await invalidate();
         return { error };
       }
       const { error } = await supabase.from("medicines").insert({
@@ -129,31 +148,28 @@ export function useMedicines() {
         start_date: input.start_date ?? today,
         end_date: input.end_date ?? null,
       });
-      if (!error) await fetchAll();
+      if (!error) await invalidate();
       return { error };
     },
-    [user, today, fetchAll]
+    [user, today]
   );
 
-  const deleteMedicine = useCallback(
-    async (id: string) => {
-      const { error } = await supabase.from("medicines").delete().eq("id", id);
-      if (!error) await fetchAll();
-      return { error };
-    },
-    [fetchAll]
-  );
+  const deleteMedicine = useCallback(async (id: string) => {
+    const { error } = await supabase.from("medicines").delete().eq("id", id);
+    if (!error) await invalidate();
+    return { error };
+  }, []);
 
   return {
     medicines,
     doses,
     takenCount,
     totalCount,
-    loading,
+    loading: query.isLoading,
     markTaken,
     undoDose,
     saveMedicine,
     deleteMedicine,
-    refresh: fetchAll,
+    refresh: invalidate,
   };
 }
