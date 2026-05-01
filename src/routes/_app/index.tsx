@@ -7,7 +7,15 @@ import { TrackerTile } from "@/components/TrackerTile";
 import { CountUp } from "@/components/CountUp";
 import { WaterSheet } from "@/components/WaterSheet";
 import { MoodSheet } from "@/components/MoodSheet";
-import { useTodayWater, useTodayMood, DEFAULT_WATER_TARGET_ML } from "@/lib/trackers";
+import {
+  useTodayWater,
+  useTodayMood,
+  useWeightLogs,
+  useWalkLogs,
+  useProfile,
+  DEFAULT_WATER_TARGET_ML,
+  DEFAULT_WALK_TARGET_MIN,
+} from "@/lib/trackers";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "Today — Daily" }] }),
@@ -37,11 +45,18 @@ function TodayPage() {
 
   const { totalMl } = useTodayWater();
   const { mood } = useTodayMood();
+  const { latest: latestWeight, delta: weightDelta } = useWeightLogs(7);
+  const { todayMinutes, todayKm } = useWalkLogs(7);
+  const { profile } = useProfile();
 
-  const waterPct = Math.min(100, (totalMl / DEFAULT_WATER_TARGET_ML) * 100);
-  // Today's combined adherence — only water + mood are real for now
+  const walkTarget = profile?.walking_target_min ?? DEFAULT_WALK_TARGET_MIN;
+  const waterTarget = profile?.daily_water_target_ml ?? DEFAULT_WATER_TARGET_ML;
+
+  const waterPct = Math.min(100, (totalMl / waterTarget) * 100);
+  const walkPct = Math.min(100, (todayMinutes / walkTarget) * 100);
   const moodPct = mood ? 100 : 0;
-  const adherence = Math.round((waterPct + moodPct) / 2);
+  // Combined adherence over the trackers that have a meaningful daily target today
+  const adherence = Math.round((waterPct + walkPct + moodPct) / 3);
 
   return (
     <>
