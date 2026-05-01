@@ -586,18 +586,9 @@ function SettingsPage() {
           </Field>
         )}
       </Section>
+      </>)}
 
-      <motion.button
-        whileTap={{ scale: 0.98 }}
-        onClick={saveAll}
-        disabled={savingProfile}
-        className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-text-primary text-bg-base font-medium text-[14px] disabled:opacity-30"
-      >
-        <Save size={15} />
-        {savingProfile ? "Saving…" : "Save changes"}
-      </motion.button>
-
-      {/* Security */}
+      {tab === "security" && (<>
       <Section title="Security">
         <button
           onClick={() => setOpen((o) => !o)}
