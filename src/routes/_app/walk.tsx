@@ -17,7 +17,7 @@ import { useWalkLogs, useProfile, DEFAULT_WALK_TARGET_MIN } from "@/lib/trackers
 import { WalkSheet } from "@/components/WalkSheet";
 
 export const Route = createFileRoute("/_app/walk")({
-  head: () => ({ meta: [{ title: "Walk — Daily" }] }),
+  head: () => ({ meta: [{ title: "Walk — Yogi" }] }),
   component: WalkDetail,
 });
 

@@ -7,7 +7,7 @@ import { PhoneFrame } from "@/components/PhoneFrame";
 import { useToastStore, haptic } from "@/lib/feedback";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Daily" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Yogi" }] }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/" });
@@ -108,7 +108,7 @@ function LoginPage() {
             className="text-text-primary mt-2"
             style={{ fontFamily: "Fraunces, serif", fontSize: 36, fontWeight: 500, lineHeight: 1.1 }}
           >
-            Welcome to <span className="italic">Daily</span>.
+            Welcome to <span className="italic">Yogi</span>.
           </h1>
           <p className="text-[14px] text-text-secondary mt-3 leading-relaxed">
             Sign in with your phone and password.

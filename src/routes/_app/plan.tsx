@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/plan")({
-  head: () => ({ meta: [{ title: "Plan — Daily" }] }),
+  head: () => ({ meta: [{ title: "Plan — Yogi" }] }),
   component: PlanPage,
 });
 

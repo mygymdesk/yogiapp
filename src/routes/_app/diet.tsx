@@ -10,7 +10,7 @@ import { CountUp } from "@/components/CountUp";
 import { useToastStore, haptic } from "@/lib/feedback";
 
 export const Route = createFileRoute("/_app/diet")({
-  head: () => ({ meta: [{ title: "Diet — Daily" }] }),
+  head: () => ({ meta: [{ title: "Diet — Yogi" }] }),
   component: DietPage,
 });
 

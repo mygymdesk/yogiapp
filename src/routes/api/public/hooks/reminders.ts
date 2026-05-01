@@ -142,7 +142,7 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
                 await sendPushToUser({
                   userId: p.user_id,
                   title: "🌙 Daily wrap-up",
-                  body: "Open Daily to see today's progress.",
+                  body: "Open Yogi to see today's progress.",
                   url: "/insights",
                   tag: `summary-${p.user_id}-${localDate}`,
                 });
