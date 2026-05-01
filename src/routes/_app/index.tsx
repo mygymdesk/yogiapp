@@ -60,7 +60,10 @@ function TodayPage() {
   const { profile, loading: lP } = useProfile();
   const { takenCount, totalCount, doses, loading: lMed } = useMedicines();
   const { totals: dietTotals, loading: lD } = useTodayMeals();
-  const initialLoading = lW && lM && lWt && lWk && lP && lMed && lD;
+  // Show the skeleton while ANY of today's data is still loading. Using `&&`
+  // here previously hid the skeleton as soon as the fastest query resolved,
+  // causing tiles to flash empty values before populating.
+  const initialLoading = lW || lM || lWt || lWk || lP || lMed || lD;
 
   const walkTarget = profile?.walking_target_min ?? DEFAULT_WALK_TARGET_MIN;
   const waterTarget = profile?.daily_water_target_ml ?? DEFAULT_WATER_TARGET_ML;
