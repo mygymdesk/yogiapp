@@ -1,11 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, LogOut, KeyRound, Save } from "lucide-react";
+import { Eye, EyeOff, LogOut, KeyRound, Save, Bell, BellOff, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useToastStore, haptic } from "@/lib/feedback";
 import { useProfile } from "@/lib/trackers";
+import {
+  isPushSupported,
+  getPushPermission,
+  subscribeToPush,
+  unsubscribeFromPush,
+  getCurrentSubscription,
+} from "@/lib/push";
+import { getVapidPublicKey, sendTestPush } from "@/server/push.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({ meta: [{ title: "Settings — Daily" }] }),
