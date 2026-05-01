@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { MiniRing } from "./MiniRing";
+import { haptic } from "@/lib/feedback";
 
 type AccentKey = "diet" | "med" | "water" | "walk" | "weight" | "mood";
 
@@ -64,15 +65,20 @@ export function TrackerTile(props: Props) {
   );
 
   const className =
-    "w-full text-left bg-bg-surface border border-border rounded-[20px] p-4 active:border-border-hover/30 block";
+    "w-full text-left bg-bg-surface border border-border rounded-[20px] p-4 active:border-border-hover/40 active:bg-bg-elevated/40 block transition-colors";
 
   if (to) {
     return (
       <motion.div
-        whileTap={{ scale: 0.985 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 320, damping: 28, mass: 0.7 }}
       >
-        <Link to={to} className={className}>
+        <Link
+          to={to}
+          onClick={() => haptic()}
+          aria-label={label}
+          className={className}
+        >
           {inner}
         </Link>
       </motion.div>
@@ -81,9 +87,15 @@ export function TrackerTile(props: Props) {
 
   return (
     <motion.button
-      onClick={onClick}
-      whileTap={onClick ? { scale: 0.985 } : undefined}
-      transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+      onClick={() => {
+        if (onClick) {
+          haptic();
+          onClick();
+        }
+      }}
+      aria-label={label}
+      whileTap={onClick ? { scale: 0.98 } : undefined}
+      transition={{ type: "spring", stiffness: 320, damping: 28, mass: 0.7 }}
       className={className}
     >
       {inner}
