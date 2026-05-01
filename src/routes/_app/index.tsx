@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { AdherenceRing } from "../components/AdherenceRing";
 import { TrackerTile } from "../components/TrackerTile";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_app/")({
   head: () => ({
     meta: [
       { title: "Today — Daily" },
