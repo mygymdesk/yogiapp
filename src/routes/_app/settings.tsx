@@ -486,6 +486,33 @@ function SettingsPage() {
             />
           </Field>
         )}
+        <Field label="Daily summary" hint="A nudge with today's progress">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setNotifyDaily((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                notifyDaily ? "bg-text-primary" : "bg-border"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-bg-base transition-transform ${
+                  notifyDaily ? "translate-x-5" : ""
+                }`}
+              />
+            </button>
+          </div>
+        </Field>
+        {notifyDaily && (
+          <Field label="Summary time">
+            <input
+              type="time"
+              value={notifyDailyTime}
+              onChange={(e) => setNotifyDailyTime(e.target.value)}
+              className={inputCls}
+              style={{ fontFamily: "Geist Mono, monospace" }}
+            />
+          </Field>
+        )}
       </Section>
 
       <motion.button
