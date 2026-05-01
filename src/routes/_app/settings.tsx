@@ -193,8 +193,9 @@ function SettingsPage() {
       notify_daily_summary_time: `${notifyDailyTime}:00`,
     } as any);
     setSavingProfile(false);
-    if (error) return showToast(error.message);
-    showToast("Saved");
+    if (error) return showToast(error.message, "error");
+    setInitialSnapshot(currentSnapshot); // form is now clean
+    showToast("Saved", "success");
   };
 
   // Push subscription state
