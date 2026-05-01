@@ -21,6 +21,8 @@ export function WaterSheet({
   const pct = Math.min(100, (totalMl / target) * 100);
   const [custom, setCustom] = useState(300);
   const showToast = useToastStore((s) => s.show);
+  const decPress = useLongPressRepeat(() => setCustom((c) => Math.max(50, c - 50)));
+  const incPress = useLongPressRepeat(() => setCustom((c) => Math.min(2000, c + 50)));
 
   const log = async (amt: number) => {
     haptic();
