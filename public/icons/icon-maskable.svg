@@ -1,0 +1,14 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="suryam" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFD89A"/>
+      <stop offset="100%" stop-color="#E76F00"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="#0A0A0B"/>
+  <g transform="translate(512 512) scale(0.78) translate(-512 -512)">
+    <path d="M 232 600 A 280 280 0 0 1 792 600 Z" fill="url(#suryam)"/>
+    <rect x="180" y="640" width="664" height="14" rx="7" fill="#F5B544"/>
+    <rect x="280" y="700" width="464" height="10" rx="5" fill="#F5B544" opacity="0.5"/>
+  </g>
+</svg>
