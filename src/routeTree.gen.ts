@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppWeightRouteImport } from './routes/_app/weight'
+import { Route as AppWalkRouteImport } from './routes/_app/walk'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppPlanRouteImport } from './routes/_app/plan'
 import { Route as AppInsightsRouteImport } from './routes/_app/insights'
@@ -28,6 +30,16 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWeightRoute = AppWeightRouteImport.update({
+  id: '/weight',
+  path: '/weight',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWalkRoute = AppWalkRouteImport.update({
+  id: '/walk',
+  path: '/walk',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -52,12 +64,16 @@ export interface FileRoutesByFullPath {
   '/insights': typeof AppInsightsRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
+  '/walk': typeof AppWalkRoute
+  '/weight': typeof AppWeightRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/insights': typeof AppInsightsRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
+  '/walk': typeof AppWalkRoute
+  '/weight': typeof AppWeightRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -67,13 +83,22 @@ export interface FileRoutesById {
   '/_app/insights': typeof AppInsightsRoute
   '/_app/plan': typeof AppPlanRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/walk': typeof AppWalkRoute
+  '/_app/weight': typeof AppWeightRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/insights' | '/plan' | '/settings'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/insights'
+    | '/plan'
+    | '/settings'
+    | '/walk'
+    | '/weight'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/insights' | '/plan' | '/settings' | '/'
+  to: '/login' | '/insights' | '/plan' | '/settings' | '/walk' | '/weight' | '/'
   id:
     | '__root__'
     | '/_app'
@@ -81,6 +106,8 @@ export interface FileRouteTypes {
     | '/_app/insights'
     | '/_app/plan'
     | '/_app/settings'
+    | '/_app/walk'
+    | '/_app/weight'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
@@ -112,6 +139,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/weight': {
+      id: '/_app/weight'
+      path: '/weight'
+      fullPath: '/weight'
+      preLoaderRoute: typeof AppWeightRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/walk': {
+      id: '/_app/walk'
+      path: '/walk'
+      fullPath: '/walk'
+      preLoaderRoute: typeof AppWalkRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -140,6 +181,8 @@ interface AppRouteChildren {
   AppInsightsRoute: typeof AppInsightsRoute
   AppPlanRoute: typeof AppPlanRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppWalkRoute: typeof AppWalkRoute
+  AppWeightRoute: typeof AppWeightRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -147,6 +190,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppInsightsRoute: AppInsightsRoute,
   AppPlanRoute: AppPlanRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppWalkRoute: AppWalkRoute,
+  AppWeightRoute: AppWeightRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
