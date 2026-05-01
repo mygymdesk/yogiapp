@@ -210,6 +210,7 @@ function TodayPage() {
 
       <WaterSheet open={waterOpen} onClose={() => setWaterOpen(false)} />
       <MoodSheet open={moodOpen} onClose={() => setMoodOpen(false)} />
+      <MedicineSheet open={medOpen} onClose={() => setMedOpen(false)} />
     </>
   );
 }
