@@ -26,6 +26,14 @@ const COUNTRY_CODES = [
   { code: "+33", name: "France" },
 ];
 
+function formatPhone(d: string) {
+  // Group as `XXXXX XXXXX XX` for readability — display only, doesn't affect digits.
+  const a = d.slice(0, 5);
+  const b = d.slice(5, 10);
+  const c = d.slice(10, 12);
+  return [a, b, c].filter(Boolean).join(" ");
+}
+
 function LoginPage() {
   const [country, setCountry] = useState("+91");
   const [phone, setPhone] = useState("");
@@ -35,6 +43,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [shake, setShake] = useState(false);
+  const [capsOn, setCapsOn] = useState(false);
   const showToast = useToastStore((s) => s.show);
   const navigate = useNavigate();
 
@@ -122,7 +131,7 @@ function LoginPage() {
               autoFocus
               type="tel"
               inputMode="numeric"
-              value={phone}
+              value={formatPhone(phone)}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 12))}
               placeholder="98765 43210"
               className="flex-1 bg-bg-elevated border border-border rounded-2xl px-4 py-3.5 text-[18px] text-text-primary placeholder:text-text-muted outline-none focus:border-border-hover/40"
@@ -157,15 +166,37 @@ function LoginPage() {
             )}
           </AnimatePresence>
 
-          <div className="text-[11px] uppercase tracking-[0.14em] text-text-muted mb-2 mt-6">
-            Password
+          <div className="text-[11px] uppercase tracking-[0.14em] text-text-muted mb-2 mt-6 flex items-center justify-between">
+            <span>Password</span>
+            <AnimatePresence>
+              {capsOn && (
+                <motion.span
+                  initial={{ opacity: 0, y: -2 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-[10px] normal-case tracking-normal text-amber-400"
+                >
+                  Caps Lock is on
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
           <div className="relative">
             <input
               type={showPw ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && submit()}
+              onKeyDown={(e) => {
+                if (typeof e.getModifierState === "function") {
+                  setCapsOn(e.getModifierState("CapsLock"));
+                }
+                if (e.key === "Enter") submit();
+              }}
+              onKeyUp={(e) => {
+                if (typeof e.getModifierState === "function") {
+                  setCapsOn(e.getModifierState("CapsLock"));
+                }
+              }}
               placeholder="••••••••"
               className="w-full bg-bg-elevated border border-border rounded-2xl px-4 py-3.5 pr-12 text-[18px] text-text-primary placeholder:text-text-muted outline-none focus:border-border-hover/40"
               style={{ fontFamily: "Geist Mono, monospace" }}

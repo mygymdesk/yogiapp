@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Premium bottom sheet. Drag-to-dismiss with rubber-band, slide+fade entrance.
@@ -24,14 +24,44 @@ export function BottomSheet({
     if (open) y.set(0);
   }, [open, y]);
 
-  // Lock body scroll + close on Escape while sheet is open.
+  // Lock body scroll + close on Escape + simple focus trap.
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const lastFocused = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (!open) return;
+    lastFocused.current = document.activeElement as HTMLElement | null;
+    // Focus first focusable inside sheet
+    const focusables = sheetRef.current?.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    focusables?.[0]?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && sheetRef.current) {
+        const items = sheetRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      lastFocused.current?.focus?.();
+    };
   }, [open, onClose]);
 
   return (
@@ -50,6 +80,7 @@ export function BottomSheet({
           />
           {/* Sheet */}
           <motion.div
+            ref={sheetRef}
             role="dialog"
             aria-modal="true"
             aria-label={title ?? "Sheet"}

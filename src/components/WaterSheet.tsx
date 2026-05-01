@@ -4,6 +4,7 @@ import { BottomSheet } from "./BottomSheet";
 import { CountUp } from "./CountUp";
 import { useTodayWater, DEFAULT_WATER_TARGET_ML } from "@/lib/trackers";
 import { haptic, useToastStore } from "@/lib/feedback";
+import { useLongPressRepeat } from "@/lib/useLongPressRepeat";
 import { Plus, Minus } from "lucide-react";
 
 const QUICK_ADDS = [250, 500, 1000];
@@ -20,6 +21,8 @@ export function WaterSheet({
   const pct = Math.min(100, (totalMl / target) * 100);
   const [custom, setCustom] = useState(300);
   const showToast = useToastStore((s) => s.show);
+  const decPress = useLongPressRepeat(() => setCustom((c) => Math.max(50, c - 50)));
+  const incPress = useLongPressRepeat(() => setCustom((c) => Math.min(2000, c + 50)));
 
   const log = async (amt: number) => {
     haptic();
@@ -100,8 +103,9 @@ export function WaterSheet({
           <div className="flex items-center justify-between">
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={() => setCustom((c) => Math.max(50, c - 50))}
-              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary"
+              {...decPress}
+              aria-label="Decrease amount"
+              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary touch-none select-none"
             >
               <Minus size={16} />
             </motion.button>
@@ -116,8 +120,9 @@ export function WaterSheet({
             </div>
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={() => setCustom((c) => Math.min(2000, c + 50))}
-              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary"
+              {...incPress}
+              aria-label="Increase amount"
+              className="size-10 rounded-full border border-border flex items-center justify-center text-text-secondary touch-none select-none"
             >
               <Plus size={16} />
             </motion.button>
