@@ -391,6 +391,97 @@ function SettingsPage() {
         </Field>
       </Section>
 
+      <Section title="Notifications">
+        <div className="px-5 py-3.5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[14px] text-text-primary">Push on this device</div>
+              <div className="text-[11px] text-text-muted mt-0.5">
+                {!isPushSupported()
+                  ? "Not supported in this browser"
+                  : pushSubscribed
+                  ? "Subscribed"
+                  : pushPerm === "denied"
+                  ? "Blocked — enable in browser settings"
+                  : "Off"}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {pushSubscribed ? (
+                <>
+                  <button
+                    onClick={sendTestNotification}
+                    disabled={pushBusy}
+                    className="px-3 py-1.5 rounded-lg text-[12px] bg-bg-base border border-border text-text-secondary flex items-center gap-1 disabled:opacity-40"
+                  >
+                    <Send size={12} /> Test
+                  </button>
+                  <button
+                    onClick={disablePush}
+                    disabled={pushBusy}
+                    className="px-3 py-1.5 rounded-lg text-[12px] bg-bg-base border border-border text-danger flex items-center gap-1 disabled:opacity-40"
+                  >
+                    <BellOff size={12} /> Off
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={enablePush}
+                  disabled={pushBusy || !isPushSupported() || pushPerm === "denied"}
+                  className="px-3 py-1.5 rounded-lg text-[12px] bg-text-primary text-bg-base flex items-center gap-1 disabled:opacity-40"
+                >
+                  <Bell size={12} /> Enable
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        <Field label="Medicine reminders" hint="Notify when a dose is due">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setNotifyMed((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                notifyMed ? "bg-text-primary" : "bg-border"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-bg-base transition-transform ${
+                  notifyMed ? "translate-x-5" : ""
+                }`}
+              />
+            </button>
+          </div>
+        </Field>
+        <Field label="Water reminders">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setNotifyWater((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                notifyWater ? "bg-text-primary" : "bg-border"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-bg-base transition-transform ${
+                  notifyWater ? "translate-x-5" : ""
+                }`}
+              />
+            </button>
+          </div>
+        </Field>
+        {notifyWater && (
+          <Field label="Water interval (min)" hint="Only nudges if you haven't logged">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={30}
+              value={notifyWaterInterval}
+              onChange={(e) => setNotifyWaterInterval(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+        )}
+      </Section>
+
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={saveAll}
