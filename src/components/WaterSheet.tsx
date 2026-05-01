@@ -4,6 +4,7 @@ import { BottomSheet } from "./BottomSheet";
 import { CountUp } from "./CountUp";
 import { useTodayWater, DEFAULT_WATER_TARGET_ML } from "@/lib/trackers";
 import { haptic, useToastStore } from "@/lib/feedback";
+import { useLongPressRepeat } from "@/lib/useLongPressRepeat";
 import { Plus, Minus } from "lucide-react";
 
 const QUICK_ADDS = [250, 500, 1000];
