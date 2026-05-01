@@ -50,6 +50,7 @@ export type Database = {
           daily_water_target_ml: number
           display_name: string | null
           dob: string | null
+          goal_weight_kg: number | null
           height_cm: number | null
           quiet_hours_end: string
           quiet_hours_start: string
@@ -64,6 +65,7 @@ export type Database = {
           daily_water_target_ml?: number
           display_name?: string | null
           dob?: string | null
+          goal_weight_kg?: number | null
           height_cm?: number | null
           quiet_hours_end?: string
           quiet_hours_start?: string
@@ -78,6 +80,7 @@ export type Database = {
           daily_water_target_ml?: number
           display_name?: string | null
           dob?: string | null
+          goal_weight_kg?: number | null
           height_cm?: number | null
           quiet_hours_end?: string
           quiet_hours_start?: string
@@ -86,6 +89,36 @@ export type Database = {
           user_id?: string
           walking_target_min?: number
           weight_unit?: string
+        }
+        Relationships: []
+      }
+      walk_logs: {
+        Row: {
+          date: string
+          distance_km: number | null
+          duration_min: number
+          id: string
+          logged_at: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          distance_km?: number | null
+          duration_min: number
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          date?: string
+          distance_km?: number | null
+          duration_min?: number
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -107,6 +140,39 @@ export type Database = {
           id?: string
           logged_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      weight_logs: {
+        Row: {
+          body_fat_pct: number | null
+          chest_cm: number | null
+          date: string
+          id: string
+          logged_at: string
+          user_id: string
+          waist_cm: number | null
+          weight_kg: number
+        }
+        Insert: {
+          body_fat_pct?: number | null
+          chest_cm?: number | null
+          date?: string
+          id?: string
+          logged_at?: string
+          user_id: string
+          waist_cm?: number | null
+          weight_kg: number
+        }
+        Update: {
+          body_fat_pct?: number | null
+          chest_cm?: number | null
+          date?: string
+          id?: string
+          logged_at?: string
+          user_id?: string
+          waist_cm?: number | null
+          weight_kg?: number
         }
         Relationships: []
       }
