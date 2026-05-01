@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
 import { format } from "date-fns";
@@ -261,33 +262,37 @@ export type Profile = {
 
 export function useProfile() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
 
-  const fetchProfile = useCallback(async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (data) setProfile(data as Profile);
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  const query = useQuery({
+    queryKey: ["profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as Profile | null) ?? null;
+    },
+    staleTime: 5 * 60_000, // profile changes are rare; cache 5 min
+  });
 
   const update = useCallback(
     async (patch: Partial<Profile>) => {
       if (!user) return { error: new Error("not signed in") };
       const { error } = await supabase.from("profiles").update(patch).eq("user_id", user.id);
-      if (!error) await fetchProfile();
+      if (!error) await qc.invalidateQueries({ queryKey: ["profile", user.id] });
       return { error };
     },
-    [user, fetchProfile]
+    [user, qc]
   );
 
-  return { profile, loading, update, refresh: fetchProfile };
+  return {
+    profile: query.data ?? null,
+    loading: query.isLoading,
+    update,
+    refresh: () => qc.invalidateQueries({ queryKey: ["profile", user?.id] }),
+  };
 }
