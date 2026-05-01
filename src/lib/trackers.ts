@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
@@ -26,83 +26,91 @@ export type WalkLog = {
   logged_at: string;
 };
 
+const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+// ============================================================
+// WATER
+// ============================================================
 export function useTodayWater() {
   const { user } = useAuth();
-  const [totalMl, setTotalMl] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const today = todayStr();
+  const key = ["water", "today", user?.id, today] as const;
 
-  const fetchToday = useCallback(async () => {
-    if (!user) return;
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const { data, error } = await supabase
-      .from("water_logs")
-      .select("amount_ml")
-      .gte("logged_at", start.toISOString());
-    if (!error && data) {
-      setTotalMl(data.reduce((s, r) => s + (r.amount_ml ?? 0), 0));
-    }
-    setLoading(false);
-  }, [user]);
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async () => {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const { data, error } = await supabase
+        .from("water_logs")
+        .select("amount_ml")
+        .gte("logged_at", start.toISOString());
+      if (error) throw error;
+      return (data ?? []).reduce((s, r) => s + (r.amount_ml ?? 0), 0);
+    },
+  });
 
-  useEffect(() => {
-    fetchToday();
-  }, [fetchToday]);
+  const totalMl = query.data ?? 0;
 
   const addWater = useCallback(
     async (amount_ml: number) => {
       if (!user) return { error: new Error("not signed in") };
-      // Optimistic
-      setTotalMl((t) => t + amount_ml);
+      // Optimistic update
+      qc.setQueryData<number>(key, (prev) => (prev ?? 0) + amount_ml);
       const { error } = await supabase
         .from("water_logs")
         .insert({ amount_ml, user_id: user.id });
       if (error) {
-        setTotalMl((t) => t - amount_ml); // rollback
+        qc.setQueryData<number>(key, (prev) => (prev ?? 0) - amount_ml);
         return { error };
       }
+      qc.invalidateQueries({ queryKey: key });
       return { error: null };
     },
-    [user]
+    [user, qc, key]
   );
 
-  return { totalMl, loading, addWater, refresh: fetchToday };
+  return {
+    totalMl,
+    loading: query.isLoading,
+    addWater,
+    refresh: () => qc.invalidateQueries({ queryKey: key }),
+  };
 }
 
+// ============================================================
+// MOOD
+// ============================================================
 export function useTodayMood() {
   const { user } = useAuth();
-  const [mood, setMood] = useState<{
-    mood: number;
-    note: string | null;
-    tags: string[];
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const today = todayStr();
+  const key = ["mood", "today", user?.id, today] as const;
 
-  const today = format(new Date(), "yyyy-MM-dd");
-
-  const fetch = useCallback(async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("mood_logs")
-      .select("mood,note,tags")
-      .eq("date", today)
-      .order("logged_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (data) setMood({ mood: data.mood, note: data.note, tags: data.tags ?? [] });
-    else setMood(null);
-    setLoading(false);
-  }, [user, today]);
-
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mood_logs")
+        .select("mood,note,tags")
+        .eq("date", today)
+        .order("logged_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data
+        ? { mood: data.mood, note: data.note, tags: data.tags ?? [] }
+        : null;
+    },
+  });
 
   const save = useCallback(
     async (m: number, note: string, tags: string[]) => {
       if (!user) return { error: new Error("not signed in") };
-      const prev = mood;
-      setMood({ mood: m, note: note || null, tags });
+      const prev = qc.getQueryData(key);
+      qc.setQueryData(key, { mood: m, note: note || null, tags });
       const { error } = await supabase.from("mood_logs").insert({
         user_id: user.id,
         date: today,
@@ -111,15 +119,16 @@ export function useTodayMood() {
         tags,
       });
       if (error) {
-        setMood(prev);
+        qc.setQueryData(key, prev);
         return { error };
       }
+      qc.invalidateQueries({ queryKey: key });
       return { error: null };
     },
-    [user, today, mood]
+    [user, today, qc, key]
   );
 
-  return { mood, loading, save };
+  return { mood: query.data ?? null, loading: query.isLoading, save };
 }
 
 // ============================================================
@@ -127,30 +136,30 @@ export function useTodayMood() {
 // ============================================================
 export function useWeightLogs(days: number = 90) {
   const { user } = useAuth();
-  const [logs, setLogs] = useState<WeightLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const key = ["weight", user?.id, days] as const;
 
-  const fetchLogs = useCallback(async () => {
-    if (!user) return;
-    const since = new Date();
-    since.setDate(since.getDate() - days);
-    const { data } = await supabase
-      .from("weight_logs")
-      .select("id,date,weight_kg,body_fat_pct,waist_cm,chest_cm,logged_at")
-      .gte("date", format(since, "yyyy-MM-dd"))
-      .order("logged_at", { ascending: true });
-    if (data) setLogs(data as WeightLog[]);
-    setLoading(false);
-  }, [user, days]);
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      const { data, error } = await supabase
+        .from("weight_logs")
+        .select("id,date,weight_kg,body_fat_pct,waist_cm,chest_cm,logged_at")
+        .gte("date", format(since, "yyyy-MM-dd"))
+        .order("logged_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as WeightLog[];
+    },
+  });
 
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+  const logs = query.data ?? [];
 
-  // Latest entry per day (latest overwrites in display, history retained in DB)
   const latestPerDay = (() => {
     const map = new Map<string, WeightLog>();
-    for (const l of logs) map.set(l.date, l); // last wins (sorted asc)
+    for (const l of logs) map.set(l.date, l);
     return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
   })();
 
@@ -169,20 +178,28 @@ export function useWeightLogs(days: number = 90) {
       if (!user) return { error: new Error("not signed in") };
       const { error } = await supabase.from("weight_logs").insert({
         user_id: user.id,
-        date: input.date ?? format(new Date(), "yyyy-MM-dd"),
+        date: input.date ?? todayStr(),
         weight_kg: input.weight_kg,
         body_fat_pct: input.body_fat_pct ?? null,
         waist_cm: input.waist_cm ?? null,
         chest_cm: input.chest_cm ?? null,
       });
       if (error) return { error };
-      await fetchLogs();
+      await qc.invalidateQueries({ queryKey: ["weight", user.id] });
       return { error: null };
     },
-    [user, fetchLogs]
+    [user, qc]
   );
 
-  return { logs: latestPerDay, allLogs: logs, latest, delta, loading, save, refresh: fetchLogs };
+  return {
+    logs: latestPerDay,
+    allLogs: logs,
+    latest,
+    delta,
+    loading: query.isLoading,
+    save,
+    refresh: () => qc.invalidateQueries({ queryKey: ["weight", user?.id] }),
+  };
 }
 
 // ============================================================
@@ -190,33 +207,40 @@ export function useWeightLogs(days: number = 90) {
 // ============================================================
 export function useWalkLogs(days: number = 7) {
   const { user } = useAuth();
-  const [logs, setLogs] = useState<WalkLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const key = ["walk", user?.id, days] as const;
+  const today = todayStr();
 
-  const fetchLogs = useCallback(async () => {
-    if (!user) return;
-    const since = new Date();
-    since.setDate(since.getDate() - days);
-    const { data } = await supabase
-      .from("walk_logs")
-      .select("id,date,duration_min,distance_km,notes,logged_at")
-      .gte("date", format(since, "yyyy-MM-dd"))
-      .order("logged_at", { ascending: false });
-    if (data) setLogs(data as WalkLog[]);
-    setLoading(false);
-  }, [user, days]);
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      const { data, error } = await supabase
+        .from("walk_logs")
+        .select("id,date,duration_min,distance_km,notes,logged_at")
+        .gte("date", format(since, "yyyy-MM-dd"))
+        .order("logged_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as WalkLog[];
+    },
+  });
 
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
-
-  const today = format(new Date(), "yyyy-MM-dd");
+  const logs = query.data ?? [];
   const todayLogs = logs.filter((l) => l.date === today);
   const todayMinutes = todayLogs.reduce((s, l) => s + l.duration_min, 0);
   const todayKm = todayLogs.reduce((s, l) => s + (l.distance_km ?? 0), 0);
 
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: ["walk", user?.id] });
+
   const save = useCallback(
-    async (input: { duration_min: number; distance_km?: number | null; notes?: string | null }) => {
+    async (input: {
+      duration_min: number;
+      distance_km?: number | null;
+      notes?: string | null;
+    }) => {
       if (!user) return { error: new Error("not signed in") };
       const { error } = await supabase.from("walk_logs").insert({
         user_id: user.id,
@@ -226,22 +250,28 @@ export function useWalkLogs(days: number = 7) {
         notes: input.notes?.trim() || null,
       });
       if (error) return { error };
-      await fetchLogs();
+      await invalidate();
       return { error: null };
     },
-    [user, today, fetchLogs]
+    [user, today]
   );
 
-  const remove = useCallback(
-    async (id: string) => {
-      const { error } = await supabase.from("walk_logs").delete().eq("id", id);
-      if (!error) await fetchLogs();
-      return { error };
-    },
-    [fetchLogs]
-  );
+  const remove = useCallback(async (id: string) => {
+    const { error } = await supabase.from("walk_logs").delete().eq("id", id);
+    if (!error) await invalidate();
+    return { error };
+  }, []);
 
-  return { logs, todayLogs, todayMinutes, todayKm, loading, save, remove, refresh: fetchLogs };
+  return {
+    logs,
+    todayLogs,
+    todayMinutes,
+    todayKm,
+    loading: query.isLoading,
+    save,
+    remove,
+    refresh: invalidate,
+  };
 }
 
 // ============================================================
