@@ -7,6 +7,11 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(self.clients.claim());
 });
 
+// No-op fetch handler. Some Chromium versions require a `fetch` listener for
+// the app to be considered installable (PWA criteria). We do NOT cache
+// anything — the network always wins, so deploys are never stale.
+self.addEventListener("fetch", () => {});
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
