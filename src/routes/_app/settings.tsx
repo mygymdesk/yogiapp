@@ -14,7 +14,7 @@ import {
   unsubscribeFromPush,
   getCurrentSubscription,
 } from "@/lib/push";
-import { getVapidPublicKey, sendTestPush } from "@/server/push.functions";
+import { getVapidPublicKey, sendTestPush } from "@/lib/push.functions";
 import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_app/settings")({
