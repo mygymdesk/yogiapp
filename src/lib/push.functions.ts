@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { sendWebPush, type PushSubscriptionRow } from "./webpush.server";
-import { deleteExpiredSubscription } from "./push.server";
+import { sendWebPush, type PushSubscriptionRow } from "@/server/webpush.server";
+import { deleteExpiredSubscription } from "@/server/push.server";
 
 /**
  * Returns the public VAPID key so the browser can build a subscription.
