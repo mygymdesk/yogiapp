@@ -22,6 +22,9 @@ import { useMedicines } from "@/lib/medicines";
 import { useTodayMeals } from "@/lib/diet";
 
 import { RouteError } from "@/components/RouteError";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { NotificationNudge } from "@/components/NotificationNudge";
+import { registerPushSW } from "@/lib/push";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "Today — Yogi" }] }),
@@ -49,6 +52,12 @@ function useGreeting() {
 function TodayPage() {
   const today = new Date();
   const greeting = useGreeting();
+  // Register the SW early so Chromium becomes eligible to fire
+  // `beforeinstallprompt`, and so push subscription is instant when the
+  // user accepts the nudge. No-op in iframe/preview.
+  useEffect(() => {
+    registerPushSW().catch(() => {});
+  }, []);
   const [waterOpen, setWaterOpen] = useState(false);
   const [moodOpen, setMoodOpen] = useState(false);
   const [medOpen, setMedOpen] = useState(false);
@@ -82,6 +91,8 @@ function TodayPage() {
 
   return (
     <>
+      <InstallPrompt />
+      <NotificationNudge />
       <div className="px-5 pt-12">
         <header className="mb-6">
           <div className="text-[12px] uppercase tracking-[0.18em] text-text-muted">
